@@ -65,6 +65,10 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :snippit, :spotify_auth,
+    client_id: System.fetch_env!("SPOTIFY_CLIENT_ID"),
+    client_secret: System.fetch_env!("SPOTIFY_CLIENT_SECRET")
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

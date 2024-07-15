@@ -1,10 +1,10 @@
 defmodule SnippitWeb.AuthController do
   use SnippitWeb, :controller
 
-  @client_id Application.compile_env(:snippit, :spotify_auth)[:client_id]
-  @client_secret Application.compile_env(:snippit, :spotify_auth)[:client_secret]
-
   def get_authorize_url() do
+    client_id = Application.fetch_env!(:snippit, :spotify_auth)[:client_id]
+    client_secret = Application.fetch_env!(:snippit, :spotify_auth)[:client_secret]
+
     response_type = "code"
     scope = "streaming user-read-email user-read-private user-modify-playback-state"
     base_url = SnippitWeb.Endpoint.url()
@@ -12,7 +12,7 @@ defmodule SnippitWeb.AuthController do
     state = for _ <- 1..16, into: "", do: <<Enum.random(~c'0123456789abcdef')>>
     query = %{
       response_type: response_type,
-      client_id: @client_id,
+      client_id: client_id,
       scope: scope,
       redirect_uri: callback_url,
       state: state
@@ -26,6 +26,9 @@ defmodule SnippitWeb.AuthController do
   end
 
   def callback(conn, params) do
+    client_id = Application.fetch_env!(:snippit, :spotify_auth)[:client_id]
+    client_secret = Application.fetch_env!(:snippit, :spotify_auth)[:client_secret]
+
     url = "https://accounts.spotify.com/api/token"
     code = params["code"]
     base_url = SnippitWeb.Endpoint.url()
@@ -38,7 +41,7 @@ defmodule SnippitWeb.AuthController do
       grant_type: "authorization_code"
     } |> URI.encode_query()
     headers = [
-      "Authorization": "Basic " <> Base.encode64("#{@client_id}:#{@client_secret}"),
+      "Authorization": "Basic " <> Base.encode64("#{client_id}:#{client_secret}"),
       "Content-Type": "application/x-www-form-urlencoded"
     ]
     {:ok, response} = HTTPoison.post(url, body, headers)

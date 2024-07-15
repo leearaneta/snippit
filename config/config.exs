@@ -23,10 +23,8 @@ config :snippit, SnippitWeb.Endpoint,
   live_view: [signing_salt: "x2VomZlh"]
 
 config :snippit, :spotify_auth,
-  client_id: System.fetch_env!("SPOTIFY_CLIENT_ID"),
-  client_secret: System.fetch_env!("SPOTIFY_CLIENT_SECRET"),
-  strategy: SnippitWeb.SpotifyProvider
-
+  client_id: System.get_env("SPOTIFY_CLIENT_ID"),
+  client_secret: System.get_env("SPOTIFY_CLIENT_SECRET")
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

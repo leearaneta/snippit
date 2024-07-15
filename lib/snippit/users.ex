@@ -48,7 +48,7 @@ defmodule Snippit.Users do
 
       %Collection{
         name: "My Snippets",
-        description: "baby's first snippets :')",
+        description: "#{user.username}'s first collection!",
         is_private: true,
         created_by_id: user.id
       }

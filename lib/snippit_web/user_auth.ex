@@ -26,8 +26,6 @@ defmodule SnippitWeb.UserAuth do
   if you are not using LiveView.
   """
 
-  @client_id Application.compile_env(:snippit, :spotify_auth)[:client_id]
-
   def log_in_user(conn, access_token, refresh_token, params \\ %{}) do
     user_return_to = get_session(conn, :user_return_to)
 
@@ -96,10 +94,11 @@ defmodule SnippitWeb.UserAuth do
   end
 
   defp fetch_new_token(refresh_token) do
+    client_id = Application.fetch_env!(:snippit, :spotify_auth)[:client_id]
     url = "https://accounts.spotify.com/api/token"
 
     body = %{
-      client_id: @client_id,
+      client_id: client_id,
       refresh_token: refresh_token,
       grant_type: "refresh_token"
     } |> URI.encode_query()
@@ -177,7 +176,7 @@ defmodule SnippitWeb.UserAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        # |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
         |> Phoenix.LiveView.redirect(to: ~p"/hello")
 
       {:halt, socket}
@@ -226,7 +225,7 @@ defmodule SnippitWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You must log in to access this page.")
+      # |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log_in")
       |> halt()
