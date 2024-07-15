@@ -20,7 +20,7 @@ defmodule SnippitWeb.Router do
   scope "/", SnippitWeb do
     pipe_through :browser
 
-    live "/", HomeLive
+    live "/*path", HomeLive
     get "/hello", PageController, :hello
   end
 

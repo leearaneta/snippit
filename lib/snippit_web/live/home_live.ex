@@ -37,7 +37,9 @@ defmodule SnippitWeb.HomeLive do
     selected_collection =
       if collection_id = params["collection"] do
         collection_id = String.to_integer(collection_id)
-        Enum.find(user_collections, fn collection -> collection.id === collection_id end)
+        collection = Enum.find(user_collections, fn collection ->
+          collection.id === collection_id
+        end)
       else
         hd(user_collections)
       end
@@ -55,6 +57,8 @@ defmodule SnippitWeb.HomeLive do
         end)
     else
       socket
+        |> put_flash(:error, "sorry, we can't find that collection.")
+        |> push_navigate(to: ~p"/")
     end
   end
 

@@ -73,11 +73,12 @@ hooks.root = {
         this.pushEvent('player_ready', deviceId)
       })
 
-      const onStateChange = ({ paused, position, loading, track_window, ...rest }) => {
+      const onStateChange = (state) => {
+        const { paused, position, loading, track_window } = state
         const player_url = track_window.current_track.uri
         checkForOutOfBoundsTrack(position)
         updatePlayId({ paused, position })
-        console.log('player_state_changed', rest)
+        console.log('player_state_changed', state)
         this.pushEvent('player_state_changed', { paused, position, loading, player_url })
       }
 
