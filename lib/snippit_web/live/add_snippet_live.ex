@@ -4,6 +4,8 @@ defmodule SnippitWeb.AddSnippet do
   import SnippitWeb.CustomComponents, warn: false
   import Ecto.Changeset
 
+  alias SnippitWeb.AddToCollection
+
   alias Snippit.Snippets
   alias Snippit.SpotifyApi
 
@@ -18,9 +20,8 @@ defmodule SnippitWeb.AddSnippet do
       |> assign(:start_ms, 0)
       |> assign(:end_ms, nil)
       |> assign(:track_width_px, 0)
-      |> assign(:description_form, to_form(%{"description" => ""}))
-      |> assign(:collection_search_form, to_form(%{"search" => ""}))
-      |> assign(:collection_search_results, [])
+      |> assign(:description, "")
+      |> assign(:collection_to_associate, nil)
 
     {:ok, socket}
   end
@@ -132,15 +133,15 @@ defmodule SnippitWeb.AddSnippet do
     {:noreply, push_event(socket, "backward", %{})}
   end
 
-  def handle_event("create_snippet", _, socket) do
+  def handle_event("snippet_created", _, socket) do
     attrs = socket.assigns.selected_track
       |> Map.put(:start_ms, socket.assigns.start_ms)
       |> Map.put(:end_ms, socket.assigns.end_ms)
-      |> Map.put(:description, Phoenix.HTML.Form.input_value(socket.assigns.description_form, :description))
-      |> Map.put(:collection_id, socket.assigns.selected_collection.id)
-      |> Map.put(:created_by_id, socket.assigns.current_user.id)
+      |> Map.put(:description, socket.assigns.description)
+      |> Map.put(:collection_id, socket.assigns.collection_to_associate.id)
+      |> Map.put(:created_by_id, socket.assigns.user_id)
 
-    socket = start_async(socket, :create_snippet, fn ->
+    socket = start_async(socket, :snippet_created, fn ->
       case Snippets.create_snippet(attrs) do
         {:ok, collection_snippet} -> collection_snippet
         other -> IO.inspect(other)
@@ -149,12 +150,12 @@ defmodule SnippitWeb.AddSnippet do
     {:noreply, socket}
   end
 
-  def handle_async(:create_snippet, {:ok, collection_snippet}, socket) do
-    send(self(), {:snippet_created, collection_snippet })
+  def handle_async(:snippet_created, {:ok, collection_snippet}, socket) do
+    send(self(), {:snippet_created, collection_snippet})
 
     socket = socket
-      |>  assign(:selected_track, nil)
-      |>  push_event("hide_modal", %{"id" => "add_snippet"})
+      |> assign(:selected_track, nil)
+      |> push_event("hide_modal", %{"id" => "add_snippet"})
 
     {:noreply, socket}
   end
@@ -185,6 +186,10 @@ defmodule SnippitWeb.AddSnippet do
     end
   end
 
+  def handle_event("collection_clicked", collection, socket) do
+    {:noreply, assign(:collection_to_associate, collection)}
+  end
+
   def render(assigns) do
     ~H"""
     <div>
@@ -192,7 +197,7 @@ defmodule SnippitWeb.AddSnippet do
         id="add_snippet"
         on_cancel={JS.push("back", target: @myself)}
       >
-        <div class="h-[75vh] flex flex-col gap-8">
+        <div class="h-[75vh] flex flex-col gap-8 overflow-hidden">
           <div class="text-2xl"> Create Snippet </div>
           <div
             :if={!@selected_track}
@@ -246,7 +251,7 @@ defmodule SnippitWeb.AddSnippet do
           </div>
           <div
             :if={@selected_track}
-            class="flex-1 justify-around flex flex-col gap-8"
+            class="flex-1 justify-around overflow-hidden flex flex-col gap-8"
           >
             <div class="flex items-center gap-16">
               <div class="flex-1 flex gap-2">
@@ -284,7 +289,7 @@ defmodule SnippitWeb.AddSnippet do
                 </div>
               </.form>
             </div>
-            <div class="w-full flex justify-between items-center">
+            <div class="w-full flex justify-around items-center">
               <div class="flex gap-2">
                 <button
                   class="cursor-pointer"
@@ -322,46 +327,46 @@ defmodule SnippitWeb.AddSnippet do
                 />
               </div>
             </div>
-            <div class="flex gap-16">
+            <div class="flex-1 flex gap-16 overflow-hidden">
               <div class="flex-1">
-                <.form for={@description_form}>
+                <.form>
                   <.input
                     label="description"
+                    name="description"
+                    value={@description}
                     type="textarea"
-                    field={@description_form["description"]}
                   />
                 </.form>
               </div>
-              <div class="flex-1 flex flex-col">
-                <.form for={@collection_search_form}>
-                  <.input
-                    label="add to:"
-                    type="hidden"
-                    field={@collection_search_form["search"]}
-                  />
-                </.form>
-                <div class="flex flex-col gap-4 justify-between">
-                  <div class="flex flex-col">
-                    <span class="font-bold"> <%= @selected_collection.name %> </span>
-                    <span> <%= @selected_collection.description %> </span>
-                  </div>
-                  <.button
-                    phx-click="create_snippet"
-                    phx-target={@myself}
-                    class="self-start"
-                  >
-                    create
-                  </.button>
-                </div>
+              <div class="flex-1 flex flex-col justify-between overflow-hidden">
+                <.live_component
+                  module={AddToCollection}
+                  id={:add_to}
+                  user_id={@user_id}
+                  collections={@collections}
+                  selected_collection={@collection_to_associate || @selected_collection}
+                  collection_changed={fn collection ->
+                    send_update(@myself, collection_to_associate: collection)
+                  end}
+                />
               </div>
             </div>
-            <button
-              class="cursor-pointer w-8"
-              phx-click="back"
-              phx-target={@myself}
-            >
-              <.icon name="hero-arrow-uturn-left" />
-            </button>
+            <div class="flex justify-between">
+              <button
+                class="cursor-pointer w-8"
+                phx-click="back"
+                phx-target={@myself}
+              >
+                <.icon name="hero-arrow-uturn-left" />
+              </button>
+              <.button
+                phx-click="snippet_created"
+                phx-target={@myself}
+                class="self-start"
+              >
+                create snippet
+              </.button>
+            </div>
           </div>
         </div>
       </.modal>

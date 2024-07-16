@@ -15,11 +15,11 @@ defmodule SnippitWeb.HomeLive do
   on_mount {SnippitWeb.UserAuth, :ensure_authenticated}
 
   def mount(params, session, socket) do
-    user_collections = Ecto.assoc(socket.assigns.current_user, :collections) |> Repo.all()
+    collections = Ecto.assoc(socket.assigns.current_user, :collections) |> Repo.all()
 
     socket = socket
-      |> assign(:user_collections, user_collections)
-      |> load_selected_collection(params, user_collections)
+      |> assign(:collections, collections)
+      |> load_selected_collection(params, collections)
       |> assign(:collection_snippets, [])
       |> assign(:user_token, session["user_token"])
       |> assign(:device_id, nil)
@@ -33,15 +33,15 @@ defmodule SnippitWeb.HomeLive do
     {:ok, socket}
   end
 
-  defp load_selected_collection(socket, params, user_collections) do
+  defp load_selected_collection(socket, params, collections) do
     selected_collection =
       if collection_id = params["collection"] do
         collection_id = String.to_integer(collection_id)
-        collection = Enum.find(user_collections, fn collection ->
+        collection = Enum.find(collections, fn collection ->
           collection.id === collection_id
         end)
       else
-        hd(user_collections)
+        hd(collections)
       end
 
     if selected_collection do
@@ -67,7 +67,7 @@ defmodule SnippitWeb.HomeLive do
   end
 
   def handle_params(params, _, socket) do
-    {:noreply, load_selected_collection(socket, params, socket.assigns.user_collections) }
+    {:noreply, load_selected_collection(socket, params, socket.assigns.collections) }
   end
 
   def handle_event("player_ready", device_id, socket) do
@@ -174,21 +174,39 @@ defmodule SnippitWeb.HomeLive do
   end
 
   def handle_info({:collection_created, collection}, socket) do
-    socket = Phoenix.Component.update(socket, :user_collections, fn collections ->
-      [collection | collections]
-    end)
+    socket = socket
+      |>  Phoenix.Component.update(:collections, fn collections ->
+            [collection | collections]
+          end)
+      |>  push_patch(to: ~p"/?collection=#{collection.id}")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:collection_edited, edited_collection}, socket) do
+    socket = socket
+      |>  Phoenix.Component.update(:collections, fn collections ->
+            Enum.map(collections, fn collection ->
+              if collection.id == edited_collection.id do
+                edited_collection
+              else
+                collection
+              end
+            end)
+          end)
+      |>  push_patch(to: ~p"/?collection=#{edited_collection.id}")
 
     {:noreply, socket}
   end
 
   def handle_info({:collection_deleted, collection_id}, socket) do
-    socket = Phoenix.Component.update(socket, :user_collections, fn collections ->
+    socket = Phoenix.Component.update(socket, :collections, fn collections ->
       Enum.filter(collections, fn collection ->
         collection.id != collection_id
       end)
     end)
     if socket.assigns.selected_collection.id == collection_id do
-      new_collection_id = hd(socket.assigns.user_collections).id
+      new_collection_id = hd(socket.assigns.collections).id
       {:noreply, push_patch(socket, to: ~p"/?collection=#{new_collection_id}")}
     else
       {:noreply, socket}
@@ -252,8 +270,8 @@ defmodule SnippitWeb.HomeLive do
           module={AddSnippet}
           id={:create}
           user_token={@user_token}
-          current_user={@current_user}
-          collections={@user_collections}
+          user_id={@current_user.id}
+          collections={@collections}
           selected_collection={@selected_collection}
           device_id={@device_id}
           playing?={@playing?}
@@ -264,7 +282,8 @@ defmodule SnippitWeb.HomeLive do
         <.live_component
           module={CollectionsIndex}
           id={:show}
-          collections={@user_collections}
+          user_id={@current_user.id}
+          collections={@collections}
           selected_collection={@selected_collection}
           current_user={@current_user}
         />
