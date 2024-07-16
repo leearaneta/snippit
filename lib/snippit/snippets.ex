@@ -71,7 +71,7 @@ defmodule Snippit.Snippets do
               |> Map.put(:index, collection_snippet_count || 0)
               |> Map.put(:added_by_id, added_by_id)
               |> CollectionSnippets.create_collection_snippet()
-      do    collection_snippet |> Repo.preload(:snippet)
+      do    collection_snippet
       else  error -> IO.inspect(error)
       end
     end)

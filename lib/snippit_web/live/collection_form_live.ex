@@ -19,9 +19,7 @@ defmodule SnippitWeb.CollectionFormLive do
       |> assign(:collection, collection)
       |> assign(:collection_form, collection_form)
       |> assign(:type, collection.id && :edit || :add)
-      |> assign(:user_id, assigns.user_id)
-      |> assign(:collection_submitted, assigns.collection_submitted)
-      |> assign(:collection_discarded, assigns.collection_discarded)
+      |> assign(assigns)
 
     {:ok, socket}
   end

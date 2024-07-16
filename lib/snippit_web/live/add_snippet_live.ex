@@ -26,6 +26,14 @@ defmodule SnippitWeb.AddSnippet do
     {:ok, socket}
   end
 
+  def update(assigns, socket) do
+    socket = socket
+      |> assign(:collection_to_associate, assigns.selected_collection)
+      |> assign(assigns)
+
+    {:ok, socket}
+  end
+
   def handle_event("search_form_change", form, socket) do
     user_token = socket.assigns.user_token
 
@@ -151,8 +159,6 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def handle_async(:snippet_created, {:ok, collection_snippet}, socket) do
-    send(self(), {:snippet_created, collection_snippet})
-
     socket = socket
       |> assign(:selected_track, nil)
       |> push_event("hide_modal", %{"id" => "add_snippet"})

@@ -29,11 +29,19 @@ defmodule SnippitWeb.HomeLive do
       |> assign(:audio_ms, 0)
       |> assign(:selected_snippet, nil)
       |> assign(:snippet_to_delete, nil)
+      |> assign(:snippet_to_repost, nil)
+      |> assign(:repost_description, nil)
+      |> assign(:repost_to_collection_id, nil)
+      |> assign(:repost_from_collection_id, nil)
 
     {:ok, socket}
   end
 
   defp load_selected_collection(socket, params, collections) do
+    if Map.get(socket.assigns, :selected_collection) do
+      CollectionSnippets.unsubscribe(socket.assigns.selected_collection.id)
+    end
+
     selected_collection =
       if collection_id = params["collection"] do
         collection_id = String.to_integer(collection_id)
@@ -45,6 +53,7 @@ defmodule SnippitWeb.HomeLive do
       end
 
     if selected_collection do
+      CollectionSnippets.subscribe(selected_collection.id)
       socket
         |> assign(:selected_collection, selected_collection)
         |> assign(:collection_snippets, [])
@@ -75,7 +84,6 @@ defmodule SnippitWeb.HomeLive do
     socket = socket
       |> assign(:device_id, device_id)
       |> put_flash(:info, "audio player ready!")
-
     {:noreply, socket}
   end
 
@@ -122,7 +130,7 @@ defmodule SnippitWeb.HomeLive do
     socket = socket
       |> assign(:selected_snippet, snippet)
       |> play_snippet(snippet)
-    {:noreply, socket }
+    {:noreply, socket}
   end
 
   def handle_event("snippet_clicked", _, socket) do
@@ -140,10 +148,50 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, socket}
   end
 
-  def handle_event("delete_snippet", _, socket) do
+  def handle_event("snippet_deleted", _, socket) do
     collection_snippet = socket.assigns.snippet_to_delete
-    socket = start_async(socket, :delete_snippet, fn ->
+    socket = start_async(socket, :snippet_deleted, fn ->
       case CollectionSnippets.delete_collection_snippet(collection_snippet) do
+        {:ok, _} -> collection_snippet
+        other -> IO.inspect(other)
+      end
+    end)
+    {:noreply, socket}
+  end
+
+  def handle_info({:snippet_deleted, %CollectionSnippet{id: id}}, socket) do
+    socket = Phoenix.Component.update(socket, :collection_snippets, fn collection_snippets ->
+      Enum.filter(collection_snippets, fn collection_snippet ->
+        id != collection_snippet.id
+      end)
+    end)
+
+    {:noreply, socket}
+  end
+
+  def handle_async(:snippet_deleted, {:ok, _}, socket) do
+    socket = socket
+      |>  assign(:snippet_to_delete, nil)
+      |>  push_event("hide_modal", %{"id" => "delete_snippet"})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("repost_snippet_clicked", %{"idx" => idx}, socket) do
+    snippet = socket.assigns.collection_snippets
+      |> Enum.at(String.to_integer(idx))
+
+    socket = socket
+      |> assign(:snippet_to_repost, snippet)
+      |> push_event("show_repost", %{"id" => "repost_snippet"})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("repost_snippet", _, socket) do
+    collection_snippet = socket.assigns.snippet_to_repost
+    socket = start_async(socket, :repost_snippet, fn ->
+      case CollectionSnippets.create(collection_snippet) do
         {:ok, _} -> collection_snippet.id
         other -> IO.inspect(other)
       end
@@ -151,16 +199,12 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, socket}
   end
 
-  def handle_async(:delete_snippet, {:ok, collection_snippet_id}, socket) do
-    socket = Phoenix.Component.update(socket, :collection_snippets, fn collection_snippets ->
-      Enum.filter(collection_snippets, fn collection_snippet ->
-        collection_snippet_id != collection_snippet.id
-      end)
-    end)
+  def handle_async(:repost_snippet, {:ok, collection_snippet_id}, socket) do
+    # TODO: do something here
 
     socket = socket
-      |>  assign(:snippet_to_delete, nil)
-      |>  push_event("hide_modal", %{"id" => "delete_snippet"})
+      |>  assign(:snippet_to_repost, nil)
+      |>  push_event("hide_modal", %{"id" => "repost_snippet"})
 
     {:noreply, socket}
   end
@@ -236,7 +280,7 @@ defmodule SnippitWeb.HomeLive do
                 <div class="flex gap-8">
                   <.button
                     class="w-24"
-                    phx-click={"delete_snippet"}
+                    phx-click={"snippet_deleted"}
                   >
                     delete
                   </.button>
@@ -323,13 +367,13 @@ defmodule SnippitWeb.HomeLive do
                 }
               >
                 <div>
-                  <%!-- <button
+                  <button
                     phx-click={"repost_snippet_clicked"}
                     phx-value-idx={i}
                     class="opacity-50 transition-opacity hover:opacity-100 pb-1"
                   >
                     <.icon name="hero-plus" class="w-4 h-4" />
-                  </button> --%>
+                  </button>
                   <button
                     phx-click={"delete_snippet_clicked"}
                     phx-value-idx={i}

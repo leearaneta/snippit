@@ -10,6 +10,23 @@ defmodule Snippit.CollectionSnippets do
 
   alias Snippit.CollectionSnippets.CollectionSnippet
 
+  def subscribe(collection_id) do
+    Phoenix.PubSub.subscribe(Snippit.PubSub, "snippets_#{collection_id}")
+  end
+
+  def unsubscribe(collection_id) do
+    Phoenix.PubSub.unsubscribe(Snippit.PubSub, "snippets_#{collection_id}")
+  end
+
+  def broadcast(%CollectionSnippet{} = cs, message) do
+    Phoenix.PubSub.broadcast(
+      Snippit.PubSub,
+      "snippets_#{cs.collection_id}",
+      {message, cs}
+    )
+    cs
+  end
+
   @doc """
   Returns the list of collection_snippets.
 
@@ -52,9 +69,16 @@ defmodule Snippit.CollectionSnippets do
 
   """
   def create_collection_snippet(attrs \\ %{}) do
-    %CollectionSnippet{}
+    response = %CollectionSnippet{}
     |> CollectionSnippet.changeset(attrs)
     |> Repo.insert()
+
+    case response do
+      {:ok, cs} ->
+        cs |> Repo.preload(:snippet) |> broadcast(:snippet_created)
+      {:error, _} ->
+        IO.inspect("error creating snippet")
+    end
   end
 
   @doc """
@@ -69,8 +93,8 @@ defmodule Snippit.CollectionSnippets do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_collection_snippet(%CollectionSnippet{} = collection_snippet, attrs) do
-    collection_snippet
+  def update_collection_snippet(%CollectionSnippet{} = cs, attrs) do
+    cs
     |> CollectionSnippet.changeset(attrs)
     |> Repo.update()
   end
@@ -87,16 +111,21 @@ defmodule Snippit.CollectionSnippets do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_collection_snippet(%CollectionSnippet{} = collection_snippet) do
+  def delete_collection_snippet(%CollectionSnippet{} = cs) do
     # load all collections
-    collections = collection_snippet.snippet
+    collections = cs.snippet
       |> Ecto.assoc(:collections)
       |> Repo.all()
 
-    if length(collections) == 1 do
-      Snippets.delete_snippet(collection_snippet.snippet)
+    response = if (length(collections) == 1) do
+      Snippets.delete_snippet(cs.snippet)
     else
-      Repo.delete(collection_snippet)
+      Repo.delete(cs)
+    end
+
+    case response do
+      {:ok, _} -> broadcast(cs, :snippet_deleted)
+      {:error, _} -> IO.inspect("error deleting snippet")
     end
   end
 
