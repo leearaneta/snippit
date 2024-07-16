@@ -129,7 +129,7 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, play_snippet(socket, socket.assigns.snippet_to_delete)}
   end
 
-  def handle_event("begin_deleting_snippet", %{"idx" => idx}, socket) do
+  def handle_event("delete_snippet_clicked", %{"idx" => idx}, socket) do
     snippet = socket.assigns.collection_snippets
       |> Enum.at(String.to_integer(idx))
 
@@ -265,7 +265,6 @@ defmodule SnippitWeb.HomeLive do
           </div>
         </.modal>
 
-
         <.live_component
           module={AddSnippet}
           id={:create}
@@ -324,8 +323,15 @@ defmodule SnippitWeb.HomeLive do
                 }
               >
                 <div>
+                  <%!-- <button
+                    phx-click={"repost_snippet_clicked"}
+                    phx-value-idx={i}
+                    class="opacity-50 transition-opacity hover:opacity-100 pb-1"
+                  >
+                    <.icon name="hero-plus" class="w-4 h-4" />
+                  </button> --%>
                   <button
-                    phx-click={"begin_deleting_snippet"}
+                    phx-click={"delete_snippet_clicked"}
                     phx-value-idx={i}
                     class="opacity-50 transition-opacity hover:opacity-100 pb-1"
                   >
