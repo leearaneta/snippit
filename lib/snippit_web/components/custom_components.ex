@@ -71,7 +71,7 @@ defmodule SnippitWeb.CustomComponents do
     ~H"""
       <div
         {@rest}
-        class={["flex flex-col gap-4 h-full", @class]}
+        class={["flex flex-col gap-2 h-full", @class]}
       >
         <.form
           phx-change={"#{@name}_search"}

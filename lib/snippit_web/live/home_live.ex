@@ -2,9 +2,12 @@ defmodule SnippitWeb.HomeLive do
   alias Snippit.CollectionSnippets
   alias SnippitWeb.CustomComponents
   alias SnippitWeb.CollectionsIndex
+
   alias SnippitWeb.AddSnippet
+  alias SnippitWeb.RepostSnippet
   alias Snippit.CollectionSnippets.CollectionSnippet
   alias Snippit.Repo
+  alias SnippitWeb.AddToCollection
 
   alias Snippit.SpotifyApi
 
@@ -27,12 +30,9 @@ defmodule SnippitWeb.HomeLive do
       |> assign(:loading?, false)
       |> assign(:player_url, nil)
       |> assign(:audio_ms, 0)
-      |> assign(:selected_snippet, nil)
+      |> assign(:now_playing_snippet, nil)
       |> assign(:snippet_to_delete, nil)
       |> assign(:snippet_to_repost, nil)
-      |> assign(:repost_description, nil)
-      |> assign(:repost_to_collection_id, nil)
-      |> assign(:repost_from_collection_id, nil)
 
     {:ok, socket}
   end
@@ -120,21 +120,17 @@ defmodule SnippitWeb.HomeLive do
       |> Map.take([:spotify_url, :start_ms, :end_ms])
 
     socket
-      |> assign(:selected_snippet, snippet)
+      |> assign(:now_playing_snippet, snippet)
       |> push_event("initialize_audio", initialize_audio_payload)
   end
 
-  def handle_event("snippet_clicked", %{"idx" => idx}, socket) do
+  def handle_event("snippet_clicked", %{"id" => id}, socket) do
     snippet = socket.assigns.collection_snippets
-      |> Enum.at(String.to_integer(idx))
+      |> Enum.find(fn cs -> cs.id == String.to_integer(id) end)
     socket = socket
-      |> assign(:selected_snippet, snippet)
+      |> assign(:now_playing_snippet, snippet)
       |> play_snippet(snippet)
     {:noreply, socket}
-  end
-
-  def handle_event("snippet_clicked", _, socket) do
-    {:noreply, play_snippet(socket, socket.assigns.snippet_to_delete)}
   end
 
   def handle_event("delete_snippet_clicked", %{"idx" => idx}, socket) do
@@ -183,28 +179,7 @@ defmodule SnippitWeb.HomeLive do
 
     socket = socket
       |> assign(:snippet_to_repost, snippet)
-      |> push_event("show_repost", %{"id" => "repost_snippet"})
-
-    {:noreply, socket}
-  end
-
-  def handle_event("repost_snippet", _, socket) do
-    collection_snippet = socket.assigns.snippet_to_repost
-    socket = start_async(socket, :repost_snippet, fn ->
-      case CollectionSnippets.create(collection_snippet) do
-        {:ok, _} -> collection_snippet.id
-        other -> IO.inspect(other)
-      end
-    end)
-    {:noreply, socket}
-  end
-
-  def handle_async(:repost_snippet, {:ok, collection_snippet_id}, socket) do
-    # TODO: do something here
-
-    socket = socket
-      |>  assign(:snippet_to_repost, nil)
-      |>  push_event("hide_modal", %{"id" => "repost_snippet"})
+      |> push_event("show_modal", %{"id" => "repost_snippet"})
 
     {:noreply, socket}
   end
@@ -238,7 +213,6 @@ defmodule SnippitWeb.HomeLive do
               end
             end)
           end)
-      |>  push_patch(to: ~p"/?collection=#{edited_collection.id}")
 
     {:noreply, socket}
   end
@@ -295,19 +269,31 @@ defmodule SnippitWeb.HomeLive do
               <div phx-click="snippet_clicked">
                 <.snippet_display
                   snippet={@snippet_to_delete}
-                  playing?={@selected_snippet
+                  playing?={@now_playing_snippet
                     && @playing?
-                    && @snippet_to_delete.id == @selected_snippet.id
+                    && @snippet_to_delete.id == @now_playing_snippet.id
                   }
-                  loading?={@selected_snippet
+                  loading?={@now_playing_snippet
                     && @loading?
-                    && @snippet_to_delete.id == @selected_snippet.id
+                    && @snippet_to_delete.id == @now_playing_snippet.id
                   }
                 />
               </div>
             </div>
           </div>
         </.modal>
+
+        <.live_component
+          module={RepostSnippet}
+          id={:repost}
+          user_id={@current_user.id}
+          collections={@collections}
+          selected_collection={@selected_collection}
+          snippet={@snippet_to_repost}
+          now_playing_snippet={@now_playing_snippet}
+          playing?={@playing?}
+          loading?={@loading?}
+        />
 
         <.live_component
           module={AddSnippet}
@@ -348,7 +334,7 @@ defmodule SnippitWeb.HomeLive do
           >
             <li
               :for={{collection_snippet, i} <- Enum.with_index(@collection_snippets)}
-              phx-value-idx={i}
+              phx-value-id={collection_snippet.id}
               phx-click="snippet_clicked"
               class={[
                 "transition-opacity",
@@ -357,13 +343,13 @@ defmodule SnippitWeb.HomeLive do
             >
               <.snippet_display
                 snippet={collection_snippet}
-                playing?={@selected_snippet
+                playing?={@now_playing_snippet
                   && @playing?
-                  && collection_snippet.id == @selected_snippet.id
+                  && collection_snippet.id == @now_playing_snippet.id
                 }
-                loading?={@selected_snippet
+                loading?={@now_playing_snippet
                   && @loading?
-                  && collection_snippet.id == @selected_snippet.id
+                  && collection_snippet.id == @now_playing_snippet.id
                 }
               >
                 <div>

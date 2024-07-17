@@ -27,11 +27,13 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def update(assigns, socket) do
-    socket = socket
-      |> assign(:collection_to_associate, assigns.selected_collection)
-      |> assign(assigns)
+    socket = if Map.get(assigns, :selected_collection) do
+      assign(socket, :collection_to_associate, assigns.selected_collection)
+    else
+      socket
+    end
 
-    {:ok, socket}
+    {:ok, assign(socket, assigns)}
   end
 
   def handle_event("search_form_change", form, socket) do
@@ -344,13 +346,13 @@ defmodule SnippitWeb.AddSnippet do
                   />
                 </.form>
               </div>
-              <div class="flex-1 flex flex-col justify-between overflow-hidden">
+              <div class="flex-1 overflow-hidden">
                 <.live_component
                   module={AddToCollection}
-                  id={:add_to}
+                  id={:create}
                   user_id={@user_id}
                   collections={@collections}
-                  selected_collection={@collection_to_associate || @selected_collection}
+                  selected_collection={@collection_to_associate}
                   collection_changed={fn collection ->
                     send_update(@myself, collection_to_associate: collection)
                   end}

@@ -76,8 +76,8 @@ defmodule Snippit.CollectionSnippets do
     case response do
       {:ok, cs} ->
         cs |> Repo.preload(:snippet) |> broadcast(:snippet_created)
-      {:error, _} ->
-        IO.inspect("error creating snippet")
+      {:error, error} ->
+        IO.inspect(error)
     end
   end
 

@@ -20,6 +20,6 @@ defmodule Snippit.CollectionSnippets.CollectionSnippet do
   def changeset(collection_snippet, attrs) do
     collection_snippet
     |> cast(attrs, [:index, :collection_id, :from_collection_id, :snippet_id, :added_by_id, :description])
-    |> validate_required([:index, :collection_id, :snippet_id, :added_by_id])
+    |> validate_required([:collection_id, :snippet_id, :added_by_id])
   end
 end

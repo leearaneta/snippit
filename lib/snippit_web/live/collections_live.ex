@@ -90,7 +90,7 @@ defmodule SnippitWeb.CollectionsIndex do
         </div>
         <.live_component
           :if={@adding_collection?}
-          id="collection_form"
+          id={:create_collection}
           module={SnippitWeb.CollectionFormLive}
           user_id={@user_id}
           collection_submitted={fn _ -> send_update(@myself, adding_collection?: false) end}
@@ -98,7 +98,7 @@ defmodule SnippitWeb.CollectionsIndex do
         />
         <.live_component
           :if={@editing_collection}
-          id="collection_form"
+          id={:edit_collection}
           module={SnippitWeb.CollectionFormLive}
           collection={@editing_collection}
           user_id={@user_id}

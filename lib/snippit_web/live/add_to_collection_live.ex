@@ -7,13 +7,14 @@ defmodule SnippitWeb.AddToCollection do
   alias Snippit.Collections
 
   def mount(socket) do
+    IO.inspect(socket)
     collection_form = %Collection{}
       |> Collections.change_form_collection()
       |> to_form()
 
     socket = socket
       |> assign(:selected_collection, nil)
-      |> assign(:adding_collection?, false)
+      |> assign(:creating_collection?, false)
       |> assign(:collection_search, "")
       |> assign(:collection_search_results, [])
       |> assign(:collection_form, collection_form)
@@ -25,10 +26,18 @@ defmodule SnippitWeb.AddToCollection do
     search_results = if search == "" do
       []
     else
-      Enum.filter(socket.assigns.collections, fn collection ->
-        collection.id != socket.assigns.selected_collection.id &&
-        collection.name |> String.downcase() |> String.contains?(search)
-      end)
+      selected_collection = socket.assigns.selected_collection
+      socket.assigns.collections
+        |>  Enum.filter(fn collection ->
+              collection.name |> String.downcase() |> String.contains?(search)
+            end)
+        |>  Enum.filter(fn collection ->
+              if !selected_collection do
+                true
+              else
+                selected_collection.id != collection.id
+              end
+            end)
     end
 
 
@@ -55,7 +64,7 @@ defmodule SnippitWeb.AddToCollection do
   def handle_event("create_collection_clicked", _, socket) do
     socket = socket
       |> assign(:selected_collection, nil)
-      |> assign(:adding_collection?, true)
+      |> assign(:creating_collection?, true)
     {:noreply, socket}
   end
 
@@ -63,12 +72,12 @@ defmodule SnippitWeb.AddToCollection do
     ~H"""
       <div class="flex flex-col overflow-hidden">
         <div
-          :if={!@adding_collection?}
+          :if={!@creating_collection?}
           class="flex flex-col gap-1 overflow-hidden"
         >
           <.form>
             <.input
-              label="add to:"
+              label="add to collection:"
               type="hidden"
               name="hidden"
               value=""
@@ -88,12 +97,12 @@ defmodule SnippitWeb.AddToCollection do
             >
               <:pinned_item>
                 <button
-                  class="h-12"
+                  class="h-8"
                   phx-click={"create_collection_clicked"}
                   phx-target={@myself}
                 >
                   <.icon name="hero-plus" class="w-4 h-4" />
-                  <span class="font-bold"> Add Collection </span>
+                  <span class="font-bold"> Create New Collection </span>
                 </button>
               </:pinned_item>
               <.collection_display collection={item}/>
@@ -101,16 +110,16 @@ defmodule SnippitWeb.AddToCollection do
           </div>
         </div>
         <.live_component
-          :if={@adding_collection?}
-          id="collection_form"
+          :if={@creating_collection?}
+          id={:add_to_collection}
           module={SnippitWeb.CollectionFormLive}
           user_id={@user_id}
           collection_submitted={fn collection ->
             @collection_changed.(collection)
-            send_update(@myself, adding_collection?: false, selected_collection: collection)
+            send_update(@myself, creating_collection?: false, selected_collection: collection)
           end}
           collection_discarded={fn ->
-            send_update(@myself, adding_collection?: false)
+            send_update(@myself, creating_collection?: false)
           end}
         />
       </div>

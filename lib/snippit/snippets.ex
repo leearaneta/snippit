@@ -57,18 +57,10 @@ defmodule Snippit.Snippets do
   end
 
   def create_snippet(attrs \\ %{}) do
-    collection_snippet_count = from(cs in CollectionSnippet,
-      where: cs.collection_id == ^attrs.collection_id,
-      group_by: cs.id,
-      limit: 1,
-      select: count(cs.id)
-    ) |> Repo.one()
-
     Repo.transaction(fn ->
       with  {:ok, %Snippet{id: snippet_id, created_by_id: added_by_id}} <- create_snippet_standalone(attrs),
             {:ok, collection_snippet} <- attrs
               |> Map.put(:snippet_id, snippet_id)
-              |> Map.put(:index, collection_snippet_count || 0)
               |> Map.put(:added_by_id, added_by_id)
               |> CollectionSnippets.create_collection_snippet()
       do    collection_snippet
