@@ -217,10 +217,11 @@ defmodule SnippitWeb.HomeLive do
   end
 
   def handle_info({:collection_created, collection}, socket) do
+    collection = Repo.preload(collection, :created_by)
     socket = socket
       |>  Phoenix.Component.update(:collections_by_id, fn collections_by_id ->
-          Map.put(collections_by_id, collection.id, collection)
-        end)
+            Map.put(collections_by_id, collection.id, collection)
+          end)
       |>  push_patch(to: ~p"/?collection=#{collection.id}")
 
     {:noreply, socket}
@@ -231,6 +232,11 @@ defmodule SnippitWeb.HomeLive do
     |>  Phoenix.Component.update(:collections_by_id, fn collections_by_id ->
           Map.put(collections_by_id, edited_collection.id, edited_collection)
         end)
+    socket = if edited_collection.id == socket.assigns.selected_collection.id do
+      assign(socket, :selected_collection, edited_collection)
+    else
+      socket
+    end
     {:noreply, socket}
   end
 
