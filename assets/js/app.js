@@ -39,14 +39,13 @@ hooks.root = {
   mounted() {
     let startMs, endMs
     let currentPlayId = 0
-    let currentTrackUrl
     let deviceId
 
     const checkForOutOfBoundsTrack = (position) => {
       if (startMs > position) {
         this.player.seek(startMs)
         return true
-      } else if (endMs < position) {
+      } else if (endMs && endMs < position) {
         this.player.pause().then(() => {
           this.player.seek(startMs)
         })
@@ -54,10 +53,17 @@ hooks.root = {
       }
     }
 
-    const script = document.createElement("script");
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-    document.body.appendChild(script);
+    let script;
+    function initializeSpotifyJS() {
+      if (script) {
+        script.remove()
+      }
+      script = document.createElement("script");
+      script.src = "https://sdk.scdn.co/spotify-player.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+    initializeSpotifyJS()
 
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = this.el.dataset.token;
@@ -69,25 +75,28 @@ hooks.root = {
 
       player.addListener('ready', ({ device_id }) => {
         deviceId = device_id
-        console.log('player ready!!')
         this.pushEvent('player_ready', deviceId)
       })
 
       const onStateChange = (state) => {
         const { paused, position, loading, track_window } = state
+        if (!track_window.current_track) {
+          this.pushEvent('device_not_connected')
+          return
+        }
         const player_url = track_window.current_track.uri
         checkForOutOfBoundsTrack(position)
         updatePlayId({ paused, position })
-        console.log('player_state_changed', state)
         this.pushEvent('player_state_changed', { paused, position, loading, player_url })
       }
 
-      const _onStateChange = debounce(onStateChange, 5)
+      const _onStateChange = debounce(onStateChange, 100)
 
       player.addListener('player_state_changed', _onStateChange)
       player.connect()
 
       this.player = player
+      window.player = player
 
       this.player.on('authentication_error', ({ message }) => {
         console.error('Failed to authenticate', message);
@@ -98,8 +107,7 @@ hooks.root = {
       });
     }
 
-    this.handleEvent('initialize_audio', ({ start_ms, end_ms, spotify_url }) => {
-      currentTrackUrl = spotify_url
+    this.handleEvent('initialize_audio', ({ start_ms, end_ms }) => {
       startMs = start_ms
       endMs = end_ms
       this.player.pause().then(() => {
@@ -114,13 +122,15 @@ hooks.root = {
       }
       const playId = Math.random()
       currentPlayId = playId
-      setTimeout(() => {
-        if (currentPlayId && currentPlayId === playId) {
-          this.player.pause().then(() => {
-            this.player.seek(startMs)
-          })
-        }
-      }, endMs - position - 10)
+      if (endMs) {
+        setTimeout(() => {
+          if (currentPlayId && currentPlayId === playId) {
+            this.player.pause().then(() => {
+              this.player.seek(startMs)
+            })
+          }
+        }, endMs - position - 10)
+      }
       // leave 10ms as buffer to prevent next song in queue from playing
     }
 
@@ -171,6 +181,12 @@ hooks.root = {
       this.player.seek(ms)
     })
 
+    this.handleEvent('track_clicked', ({ url }) => {
+      window.open(url)
+      startMs = 0
+      endMs = null
+    })
+
   },
   destroyed() {
     this.player.disconnect()
@@ -185,7 +201,7 @@ hooks.track = {
     const trackEl = this.el.querySelector('#track-marker')
 
     this.pushEventTo(this.el, 'width_computed', width)
-    let durationMs
+    let durationMs, isPlaying
     const state = {
       bound1: {
         el: bound1El, isDragging: false
@@ -202,6 +218,9 @@ hooks.track = {
     markers.forEach(marker => {
       state[marker].el.addEventListener('mousedown', () => {
         state[marker].isDragging = true
+        if (marker === 'track') {
+          isPlaying = false
+        }
       })
     })
 
@@ -260,27 +279,26 @@ hooks.track = {
 
     this.handleEvent('initialize_audio', ({ end_ms, spotify_url }) => {
       this.spotifyUrl = spotify_url
-      console.log(this.spotifyUrl)
       durationMs = end_ms
     })
 
-    let isPlaying, prevTimestamp, currentPlayId
+    let playStartMs, mostRecentAudioMs, currentPlayId
     function maybeMoveTrackMarker(timestamp, playId, init = false) {
       if (!isPlaying || (playId !== currentPlayId)) {
         return
       }
       if (init) {
-        prevTimestamp = timestamp
+        playStartMs = timestamp
       }
-      const elapsed = timestamp - prevTimestamp
+      const totalElapsed = timestamp - playStartMs
       const pxPerMs = width / durationMs
-      const newTranslateX = (getMsFromMarkerName('track') + elapsed) * pxPerMs
+      const newTranslateX = (mostRecentAudioMs + totalElapsed) * pxPerMs
       applyXTransformToMarker('track', newTranslateX)
       requestAnimationFrame(timestamp => maybeMoveTrackMarker(timestamp, playId))
-      prevTimestamp = timestamp
     }
-    this.handleEvent('player_state_changed', ({ playing }) => {
+    this.handleEvent('player_state_changed', ({ playing, position: audioMs }) => {
       isPlaying = playing
+      mostRecentAudioMs = audioMs
       currentPlayId = Math.random()
       requestAnimationFrame(timestamp => maybeMoveTrackMarker(timestamp, currentPlayId, true))
     })

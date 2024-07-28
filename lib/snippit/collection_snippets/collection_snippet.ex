@@ -21,5 +21,6 @@ defmodule Snippit.CollectionSnippets.CollectionSnippet do
     collection_snippet
     |> cast(attrs, [:index, :collection_id, :from_collection_id, :snippet_id, :added_by_id, :description])
     |> validate_required([:collection_id, :snippet_id, :added_by_id])
+    |> IO.inspect()
   end
 end

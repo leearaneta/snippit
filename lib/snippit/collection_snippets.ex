@@ -72,6 +72,7 @@ defmodule Snippit.CollectionSnippets do
     response = %CollectionSnippet{}
     |> CollectionSnippet.changeset(attrs)
     |> Repo.insert()
+    |> IO.inspect()
 
     case response do
       {:ok, cs} ->

@@ -1,5 +1,9 @@
 defmodule Snippit.Collections.Collection do
+  alias Snippit.Users.User
+  alias Snippit.CollectionInvites.CollectionInvite
+  alias Snippit.CollectionUsers.CollectionUser
   alias Snippit.CollectionSnippets.CollectionSnippet
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -7,9 +11,14 @@ defmodule Snippit.Collections.Collection do
     field :name, :string
     field :description, :string
     field :is_private, :boolean, default: false
-    field :created_by_id, :id
+    field :is_editor, :boolean, virtual: true
+    field :is_invite, :boolean, virtual: true
 
+    belongs_to :created_by, User, foreign_key: :created_by_id
     has_many :collection_snippets, CollectionSnippet, foreign_key: :collection_id
+    has_many :collection_users, CollectionUser
+    has_many :collection_invites, CollectionInvite
+
     timestamps(type: :utc_datetime)
   end
 

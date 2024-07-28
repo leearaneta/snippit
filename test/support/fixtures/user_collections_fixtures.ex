@@ -12,7 +12,6 @@ defmodule Snippit.CollectionUsersFixtures do
       attrs
       |> Enum.into(%{
         is_editor: true,
-        is_pending: true
       })
       |> Snippit.CollectionUsers.create_collection_user()
 

@@ -7,7 +7,6 @@ defmodule SnippitWeb.AddToCollection do
   alias Snippit.Collections
 
   def mount(socket) do
-    IO.inspect(socket)
     collection_form = %Collection{}
       |> Collections.change_form_collection()
       |> to_form()
@@ -97,12 +96,12 @@ defmodule SnippitWeb.AddToCollection do
             >
               <:pinned_item>
                 <button
-                  class="h-8"
+                  class="h-8 flex items-center gap-2"
                   phx-click={"create_collection_clicked"}
                   phx-target={@myself}
                 >
                   <.icon name="hero-plus" class="w-4 h-4" />
-                  <span class="font-bold"> Create New Collection </span>
+                  <span class="font-bold text-sm"> Create New Collection </span>
                 </button>
               </:pinned_item>
               <.collection_display collection={item}/>

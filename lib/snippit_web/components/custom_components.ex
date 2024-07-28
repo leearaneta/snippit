@@ -1,6 +1,9 @@
 defmodule SnippitWeb.CustomComponents do
+  alias Snippit.Snippets.Snippet
+  alias Snippit.Collections.Collection
   use SnippitWeb, :html
 
+  attr :collection, Collection
   attr :class, :string, default: nil
   slot :inner_block
   def collection_display(assigns) do
@@ -8,7 +11,7 @@ defmodule SnippitWeb.CustomComponents do
       <div class={["flex h-12 justify-between", @class]}>
         <div class="flex flex-col">
           <span class="font-bold"> <%= @collection.name %> </span>
-          <span> <%= @collection.description %> </span>
+          <span> <%= "created by " <> @collection.created_by.username %> </span>
         </div>
         <div class="collection-buttons transition-opacity opacity-0 pointer-events-none">
           <%= render_slot(@inner_block) %>
@@ -28,6 +31,9 @@ defmodule SnippitWeb.CustomComponents do
     end
   end
 
+  attr :playing?, :boolean
+  attr :loading?, :boolean
+  attr :snippet, Snippet
   slot :inner_block
   def snippet_display(assigns) do
     ~H"""
@@ -63,7 +69,8 @@ defmodule SnippitWeb.CustomComponents do
   attr :el, :any, required: true
   attr :name, :string, required: true
   attr :items, :list, required: true
-  attr :class, :string
+  attr :label, :string, default: ""
+  attr :class, :string, default: ""
   attr :rest, :global
   slot :inner_block
   slot :pinned_item
@@ -77,18 +84,16 @@ defmodule SnippitWeb.CustomComponents do
           phx-change={"#{@name}_search"}
           phx-target={@el}
         >
-          <div class="w-full relative">
-            <.icon
-              name="hero-magnifying-glass top-1/2 translate-y-[-50%]"
-              class="absolute left-[10px]"
-            />
+          <div class="w-full">
             <.input
               name="search"
+              icon="hero-magnifying-glass"
               class="icon-input"
               value={@search}
               phx-debounce="250"
+              label={@label}
             />
-            </div>
+          </div>
         </.form>
         <ul class="flex flex-col gap-2 overflow-scroll">
           <li :if={@pinned_item}>
@@ -108,6 +113,22 @@ defmodule SnippitWeb.CustomComponents do
             <%= render_slot(@inner_block, %{"item" => item, "index" => index}) %>
           </li>
         </ul>
+      </div>
+    """
+  end
+
+  attr :track, :string, required: true
+  attr :artist, :string, required: true
+  attr :thumbnail_url, :string, required: true
+  @spec track_display(map()) :: Phoenix.LiveView.Rendered.t()
+  def track_display(assigns) do
+    ~H"""
+      <div class="flex gap-2">
+        <img src={@thumbnail_url} />
+        <div class="flex flex-col w-48">
+          <span class="font-bold overflow-hidden text-ellipsis whitespace-nowrap"> <%= @track %> </span>
+          <span class="overflow-hidden text-ellipsis whitespace-nowrap"> <%= @artist %> </span>
+        </div>
       </div>
     """
   end

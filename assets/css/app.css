@@ -8,8 +8,3 @@ body > div {
   flex: 1;
   height: 90%;
 }
-
-.icon-input > input {
-  padding-left: 40px;
-  margin-top: 0px;
-}

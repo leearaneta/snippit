@@ -1,4 +1,6 @@
 defmodule Snippit.Users.User do
+  alias Snippit.CollectionUsers.CollectionUser
+  alias Snippit.CollectionInvites.CollectionInvite
   alias Snippit.Collections.Collection
   use Ecto.Schema
   import Ecto.Changeset
@@ -9,6 +11,9 @@ defmodule Snippit.Users.User do
     field :spotify_id, :string
 
     has_many :collections, Collection, foreign_key: :created_by_id
+    has_many :collection_invites_from, CollectionInvite, foreign_key: :from_user_id
+    has_many :collection_invites, CollectionInvite, foreign_key: :user_id
+    many_to_many :external_collections, Collection, join_through: CollectionUser
 
     timestamps(type: :utc_datetime)
   end

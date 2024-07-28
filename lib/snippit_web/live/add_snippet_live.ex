@@ -11,17 +11,16 @@ defmodule SnippitWeb.AddSnippet do
 
   def mount(socket) do
     snippet_search_form = %{"track" => "", "artist" => "", "album" => ""}
-      |> to_form()
+    |> to_form()
 
     socket = socket
-      |> assign(:snippet_search_form, snippet_search_form)
-      |> assign(:track_search_results, [])
-      |> assign(:selected_track, nil)
-      |> assign(:start_ms, 0)
-      |> assign(:end_ms, nil)
-      |> assign(:track_width_px, 0)
-      |> assign(:description, "")
-      |> assign(:collection_to_associate, nil)
+    |> assign(:snippet_search_form, snippet_search_form)
+    |> assign(:track_search_results, [])
+    |> assign(:selected_track, nil)
+    |> assign(:start_ms, 0)
+    |> assign(:end_ms, nil)
+    |> assign(:track_width_px, 0)
+    |> assign(:collection_to_associate, nil)
 
     {:ok, socket}
   end
@@ -49,24 +48,25 @@ defmodule SnippitWeb.AddSnippet do
     {:noreply, assign(socket, :track_search_results, track_search_results)}
   end
 
-  def handle_event("selected_track", %{"idx" => idx}, socket) do
+  def handle_event("track_selected", %{"idx" => idx}, socket) do
     selected_track = socket.assigns.track_search_results
-      |> Enum.at(String.to_integer(idx))
+    |> Enum.at(String.to_integer(idx))
 
     bounds_form = %{"start_ms" => 0, "end_ms" => selected_track.duration_ms}
-      |> to_form()
+    |> to_form()
 
     socket = socket
-      |> assign(:selected_track, selected_track)
-      |> assign(:track_search_results, [])
-      |> assign(:bounds_form, bounds_form)
-      |> assign(:start_ms, 0)
-      |> assign(:end_ms, selected_track.duration_ms)
-      |> push_event("initialize_audio", %{
-          "start_ms" => 0,
-          "end_ms" => selected_track.duration_ms,
-          "spotify_url" => selected_track.spotify_url
-        })
+    |> assign(:selected_track, selected_track)
+    |> assign(:track_search_results, [])
+    |> assign(:bounds_form, bounds_form)
+    |> assign(:description, "")
+    |> assign(:start_ms, 0)
+    |> assign(:end_ms, selected_track.duration_ms)
+    |> push_event("initialize_audio", %{
+        "start_ms" => 0,
+        "end_ms" => selected_track.duration_ms,
+        "spotify_url" => selected_track.spotify_url
+      })
     {:noreply, socket}
   end
 
@@ -143,13 +143,17 @@ defmodule SnippitWeb.AddSnippet do
     {:noreply, push_event(socket, "backward", %{})}
   end
 
+  def handle_event("description_changed", %{"description" => description}, socket) do
+    {:noreply, assign(socket, :description, description)}
+  end
+
   def handle_event("snippet_created", _, socket) do
     attrs = socket.assigns.selected_track
-      |> Map.put(:start_ms, socket.assigns.start_ms)
-      |> Map.put(:end_ms, socket.assigns.end_ms)
-      |> Map.put(:description, socket.assigns.description)
-      |> Map.put(:collection_id, socket.assigns.collection_to_associate.id)
-      |> Map.put(:created_by_id, socket.assigns.user_id)
+    |> Map.put(:start_ms, socket.assigns.start_ms)
+    |> Map.put(:end_ms, socket.assigns.end_ms)
+    |> Map.put(:description, socket.assigns.description)
+    |> Map.put(:collection_id, socket.assigns.collection_to_associate.id)
+    |> Map.put(:created_by_id, socket.assigns.user_id)
 
     socket = start_async(socket, :snippet_created, fn ->
       case Snippets.create_snippet(attrs) do
@@ -160,7 +164,7 @@ defmodule SnippitWeb.AddSnippet do
     {:noreply, socket}
   end
 
-  def handle_async(:snippet_created, {:ok, collection_snippet}, socket) do
+  def handle_async(:snippet_created, {:ok, _}, socket) do
     socket = socket
       |> assign(:selected_track, nil)
       |> push_event("hide_modal", %{"id" => "add_snippet"})
@@ -185,16 +189,14 @@ defmodule SnippitWeb.AddSnippet do
 
   def handle_event("track_removed", %{"spotify_url" => spotify_url}, socket) do
     if socket.assigns.player_url == spotify_url do
-      socket = socket
-        |> push_event("reset", %{})
-
+      socket = socket |> push_event("reset", %{})
       {:noreply, socket}
     else
       {:noreply, socket}
     end
   end
 
-  def handle_event("collection_clicked", collection, socket) do
+  def handle_event("collection_clicked", collection, _) do
     {:noreply, assign(:collection_to_associate, collection)}
   end
 
@@ -245,7 +247,7 @@ defmodule SnippitWeb.AddSnippet do
                 <li
                   class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 h-[60px] pl-[5px]"
                   phx-value-idx={i}
-                  phx-click="selected_track"
+                  phx-click="track_selected"
                   phx-target={@myself}
                 >
                   <img src={track.thumbnail_url} width="50" height="50" />
@@ -262,12 +264,12 @@ defmodule SnippitWeb.AddSnippet do
             class="flex-1 justify-around overflow-hidden flex flex-col gap-8"
           >
             <div class="flex items-center gap-16">
-              <div class="flex-1 flex gap-2">
-                <img src={@selected_track.thumbnail_url} width="50" height="50" />
-                <div class="flex flex-col">
-                  <span class="font-bold"> <%= @selected_track.track %> </span>
-                  <span> <%= @selected_track.artist %> </span>
-                </div>
+              <div class="flex-1">
+                <.track_display
+                  track={@selected_track.track}
+                  artist={@selected_track.artist}
+                  thumbnail_url={@selected_track.thumbnail_url}
+                />
               </div>
               <.form
                 class="flex-1 flex flex-col"
@@ -337,12 +339,16 @@ defmodule SnippitWeb.AddSnippet do
             </div>
             <div class="flex-1 flex gap-16 overflow-hidden">
               <div class="flex-1">
-                <.form>
+                <.form
+                  phx-change="description_changed"
+                  phx-target={@myself}
+                >
                   <.input
                     label="description"
                     name="description"
                     value={@description}
                     type="textarea"
+                    phx-debounce="250"
                   />
                 </.form>
               </div>

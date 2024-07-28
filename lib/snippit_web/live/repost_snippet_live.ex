@@ -27,7 +27,7 @@ defmodule SnippitWeb.RepostSnippet do
 
   def handle_event("snippet_reposted", _, socket) do
     params = %{
-      snippet_id: socket.assigns.snippet.id,
+      snippet_id: socket.assigns.snippet.snippet.id,
       collection_id: socket.assigns.repost_collection.id,
       description: socket.assigns.repost_description,
       from_collection_id: socket.assigns.selected_collection.id,
