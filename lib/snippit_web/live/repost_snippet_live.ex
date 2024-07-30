@@ -13,8 +13,8 @@ defmodule SnippitWeb.RepostSnippet do
   def update(assigns, socket) do
     if Map.get(assigns, :snippet) do
       socket = socket
-        |> assign(:repost_description, assigns.snippet.description)
-        |> assign(assigns)
+      |> assign(:repost_description, assigns.snippet.description)
+      |> assign(assigns)
       {:ok, socket}
     else
       {:ok, assign(socket, assigns)}
