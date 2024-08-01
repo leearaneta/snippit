@@ -9,9 +9,13 @@ defmodule SnippitWeb.CustomComponents do
   def collection_display(assigns) do
     ~H"""
       <div class={["flex h-12 justify-between", @class]}>
-        <div class="flex flex-col">
-          <span class="font-bold"> <%= @collection.name %> </span>
-          <span> <%= "created by " <> @collection.created_by.username %> </span>
+        <div class="flex flex-col overflow-hidden">
+          <span class="font-bold overflow-hidden whitespace-nowrap text-ellipsis">
+            <%= @collection.name %>
+          </span>
+          <span class="overflow-hidden whitespace-nowrap text-ellipsis">
+            <%= "created by " <> @collection.created_by.username %>
+          </span>
         </div>
         <div class="collection-buttons transition-opacity opacity-0 pointer-events-none">
           <%= render_slot(@inner_block) %>
@@ -78,7 +82,7 @@ defmodule SnippitWeb.CustomComponents do
     ~H"""
       <div
         {@rest}
-        class={["flex flex-col gap-2 h-full", @class]}
+        class={["flex flex-col gap-2 h-full overflow-hidden", @class]}
       >
         <.form
           phx-change={"#{@name}_search"}

@@ -3,7 +3,7 @@ defmodule SnippitWeb.HomeLive do
   alias Snippit.Collections
   alias Snippit.CollectionSnippets
   alias SnippitWeb.CustomComponents
-  alias SnippitWeb.CollectionsIndex
+  alias SnippitWeb.CollectionsLive
 
 
   alias Snippit.CollectionSnippets.CollectionSnippet
@@ -79,7 +79,6 @@ defmodule SnippitWeb.HomeLive do
   end
 
   def handle_event("player_ready", device_id, socket) do
-    # SpotifyApi.set_device_id(socket.assigns.user_token, device_id)
     {:noreply, assign(socket, :device_id, device_id)}
   end
 
@@ -208,6 +207,10 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, socket}
   end
 
+  def handle_event("failed_to_authenticate", _, socket) do
+    {:noreply, redirect(socket, to: ~p"/auth/logout")}
+  end
+
   def render(assigns) do
     ~H"""
       <div
@@ -217,7 +220,7 @@ defmodule SnippitWeb.HomeLive do
         data-token={@user_token}
       >
         <.live_component
-          module={CollectionsIndex}
+          module={CollectionsLive}
           id={:show}
           collections_by_id={@collections_by_id}
           selected_collection={@selected_collection}
@@ -229,19 +232,54 @@ defmodule SnippitWeb.HomeLive do
         >
           <div class="flex flex-col gap-4">
             <div class="flex gap-8 items-end">
-              <div class="text-4xl"> <%= @selected_collection.name %> </div>
-              <button
-                :if={!@selected_collection.is_invite}
-                phx-click={show_modal("add_snippet")}
-              >
-                <.icon name="hero-plus-circle" class="w-8 h-8"/>
-              </button>
+              <div class="text-4xl max-w-96"> <%= @selected_collection.name %> </div>
+              <div class="flex items-center gap-4">
+                <button
+                  :if={!@selected_collection.invited_by}
+                  phx-click={show_modal("add_snippet")}
+                >
+                  <.icon name="hero-plus-circle" class="w-8 h-8"/>
+                </button>
+                <button
+                  :if={@selected_collection.created_by_id == @current_user.id}
+                  phx-click={"edit_collection_clicked"}
+                  phx-value-id={@selected_collection.id}
+                  phx-target="#collections"
+                  class="opacity-50 transition-opacity hover:opacity-100"
+                >
+                  <.icon name="hero-pencil-square" />
+                </button>
+                <button
+                  :if={@selected_collection.created_by_id == @current_user.id}
+                  phx-click={"share_collection_clicked"}
+                  phx-value-id={@selected_collection.id}
+                  phx-target="#collections"
+                  class="opacity-50 transition-opacity hover:opacity-100"
+                >
+                  <.icon name="hero-share" />
+                </button>
+                <button
+                  phx-click={"delete_collection_clicked"}
+                  phx-value-id={@selected_collection.id}
+                  phx-target="#collections"
+                  class="opacity-50 transition-opacity hover:opacity-100"
+                >
+                  <.icon name="hero-trash" />
+                </button>
+              </div>
             </div>
-            <div class="max-w-48"> <%= @selected_collection.description %> </div>
+            <div class="flex justify-between">
+              <div class="max-w-xl">
+                <%= @selected_collection.description %>
+              </div>
+              <div class="max-w-96 whitespace-nowrap text-ellipsis overflow-hidden">
+                created by <%= @selected_collection.created_by.username %>
+              </div>
+            </div>
           </div>
           <.live_component
             module={SnippetsLive}
-            :if={@selected_collection && !@selected_collection.is_invite}
+            :if={@selected_collection && !@selected_collection.invited_by}
             id={:snippets}
             collections={Map.values(@collections_by_id)}
             collection_snippets={@collection_snippets}
@@ -255,11 +293,11 @@ defmodule SnippitWeb.HomeLive do
             loading?={@loading?}
           />
           <div
-            :if={@selected_collection.is_invite}
+            :if={@selected_collection.invited_by}
             class="flex flex-col h-full justify-center items-center gap-12 pb-16"
           >
             <div class="text-2xl">
-              chibi bb invited you to edit this collection
+              <%= @selected_collection.invited_by.username %> invited you to edit this collection
             </div>
             <div class="flex gap-12">
               <.button phx-click="accept_invite_clicked">

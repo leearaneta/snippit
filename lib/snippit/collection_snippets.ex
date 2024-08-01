@@ -4,7 +4,6 @@ defmodule Snippit.CollectionSnippets do
   """
 
   import Ecto.Query, warn: false
-  alias Snippit.CollectionSnippets
   alias Snippit.Snippets
   alias Snippit.Repo
 
@@ -24,7 +23,7 @@ defmodule Snippit.CollectionSnippets do
       "snippets_#{cs.collection_id}",
       {message, cs}
     )
-    cs
+    {:ok, cs}
   end
 
   @doc """
@@ -72,13 +71,11 @@ defmodule Snippit.CollectionSnippets do
     response = %CollectionSnippet{}
     |> CollectionSnippet.changeset(attrs)
     |> Repo.insert()
-    |> IO.inspect()
 
     case response do
       {:ok, cs} ->
         cs |> Repo.preload(:snippet) |> broadcast(:snippet_created)
-      {:error, error} ->
-        IO.inspect(error)
+      {:error, changeset} -> {:error, changeset}
     end
   end
 

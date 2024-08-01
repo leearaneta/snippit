@@ -53,18 +53,11 @@ hooks.root = {
       }
     }
 
-    let script;
-    function initializeSpotifyJS() {
-      if (script) {
-        script.remove()
-      }
-      script = document.createElement("script");
-      script.src = "https://sdk.scdn.co/spotify-player.js";
-      script.async = true;
-      document.body.appendChild(script);
-    }
-    initializeSpotifyJS()
-
+    let script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = this.el.dataset.token;
       const player = new Spotify.Player({
@@ -99,7 +92,7 @@ hooks.root = {
       window.player = player
 
       this.player.on('authentication_error', ({ message }) => {
-        console.error('Failed to authenticate', message);
+        this.pushEvent('failed_to_authenticate', {})
       });
 
       player.on('playback_error', ({ message }) => {
@@ -312,7 +305,7 @@ hooks.track = {
   }
 }
 
-hooks.collections = {
+hooks.collections_index = {
   addListeners() {
     this.el
       .querySelectorAll(".collection-link")

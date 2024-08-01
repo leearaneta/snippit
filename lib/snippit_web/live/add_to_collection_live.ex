@@ -1,7 +1,6 @@
 defmodule SnippitWeb.AddToCollection do
   import SnippitWeb.CustomComponents, warn: false
   use SnippitWeb, :live_component
-  use Phoenix.LiveComponent
 
   alias Snippit.Collections.Collection
   alias Snippit.Collections
@@ -92,7 +91,7 @@ defmodule SnippitWeb.AddToCollection do
               name="collection"
               search={@collection_search}
               el={@myself}
-              :let={%{"item" => item, "index" => index}}
+              :let={%{"item" => item}}
             >
               <:pinned_item>
                 <button
@@ -111,6 +110,7 @@ defmodule SnippitWeb.AddToCollection do
         <.live_component
           :if={@creating_collection?}
           id={:add_to_collection}
+          type={:create}
           module={SnippitWeb.CollectionFormLive}
           user_id={@user_id}
           collection_submitted={fn collection ->

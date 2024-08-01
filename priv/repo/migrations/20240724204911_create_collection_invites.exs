@@ -13,5 +13,6 @@ defmodule Snippit.Repo.Migrations.CreateCollectionInvites do
     create index(:collection_invites, [:user_id])
     create index(:collection_invites, [:from_user_id])
     create index(:collection_invites, [:collection_id])
+    create index(:collection_invites, [:user_id, :collection_id], unique: true)
   end
 end

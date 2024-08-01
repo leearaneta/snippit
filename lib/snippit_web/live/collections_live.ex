@@ -1,4 +1,4 @@
-defmodule SnippitWeb.CollectionsIndex do
+defmodule SnippitWeb.CollectionsLive do
   alias Snippit.Users
   use SnippitWeb, :live_component
 
@@ -217,7 +217,10 @@ defmodule SnippitWeb.CollectionsIndex do
 
   def render(assigns) do
     ~H"""
-      <div class="flex-none w-96 pr-4 flex flex-col gap-6 border-r-2">
+      <div
+        id="collections"
+        class="flex-none w-96 pr-4 flex flex-col gap-6 border-r-2"
+      >
         <div class="flex justify-between items-center">
           <div class="text-2xl"> Collections </div>
           <button
@@ -248,8 +251,8 @@ defmodule SnippitWeb.CollectionsIndex do
         />
         <.search
           :if={!@adding_collection? && !@collection_to_edit}
-          id="collections"
-          phx-hook="collections"
+          id="collections-index"
+          phx-hook="collections_index"
           class="flex-1"
           items={@collection_search == ""
             && @collections_by_id |> Map.values()
@@ -264,7 +267,7 @@ defmodule SnippitWeb.CollectionsIndex do
             class={"collection-link"}
             collection={collection}
           >
-            <div :if={!collection.is_invite}>
+            <div :if={!collection.invited_by}>
               <button
                 :if={collection.created_by_id == @current_user.id}
                 phx-click={"edit_collection_clicked"}
@@ -336,7 +339,7 @@ defmodule SnippitWeb.CollectionsIndex do
               </div>
               <.collection_display
                 collection={@collection_to_delete}
-                class="flex-1"
+                class="flex-1 max-w-[50%]"
               />
             </div>
           </div>
@@ -344,12 +347,12 @@ defmodule SnippitWeb.CollectionsIndex do
         <.modal id="share_collection">
           <div
             :if={@collection_to_share}
-            class="h-[75vh] flex flex-col gap-8"
+            class="h-[64vh] flex flex-col gap-8"
           >
             <div class="text-2xl"> Share Collection </div>
-            <div class="flex justify-between gap-16">
+            <div class="h-full flex justify-between gap-16 overflow-hidden">
               <div class="flex-1 flex flex-col gap-8">
-                <div class="flex flex-col gap-1">
+                <div class="flex-1 flex flex-col gap-1 overflow-hidden">
                   <.form
                     for={@app_invite_form}
                     phx-change="validate_app_invite"
@@ -406,10 +409,10 @@ defmodule SnippitWeb.CollectionsIndex do
                   </.button>
                 </div>
               </div>
-              <div class="flex-1 flex flex-col gap-8">
+              <div class="flex-1 flex flex-col gap-8 max-w-[50%]">
                 <.collection_display collection={@collection_to_share} />
-                <div class="flex flex-col gap-2">
-                  <ul class="flex flex-col gap-1">
+                <div class="flex flex-col gap-2 overflow-hidden">
+                  <ul class="flex flex-col gap-1 overflow-scroll">
                     <li
                       :for={user <- @users_to_share_with}
                       class="flex justify-between"

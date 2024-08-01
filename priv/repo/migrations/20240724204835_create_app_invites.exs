@@ -13,6 +13,6 @@ defmodule Snippit.Repo.Migrations.CreateAppInvites do
     create index(:app_invites, [:email])
     create index(:app_invites, [:from_user_id])
     create index(:app_invites, [:collection_id])
-    create index(:app_invites, [:email, :from_user_id, :collection_id], unique: true)
+    create index(:app_invites, [:email, :collection_id], unique: true)
   end
 end

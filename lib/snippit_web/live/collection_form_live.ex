@@ -4,6 +4,7 @@ defmodule SnippitWeb.CollectionFormLive do
   import SnippitWeb.CustomComponents, warn: false
   alias Snippit.Collections.Collection
   alias Snippit.Collections
+  alias Snippit.Repo
 
   def mount(socket) do
     {:ok, socket}
@@ -39,7 +40,7 @@ defmodule SnippitWeb.CollectionFormLive do
     socket = if socket.assigns.type == :create do
       start_async(socket, :collection_submitted, fn ->
         case Collections.create_collection(params) do
-          {:ok, collection} -> collection
+          {:ok, collection} -> collection |> Repo.preload(:created_by)
           other -> IO.inspect(other)
         end
       end)

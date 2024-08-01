@@ -17,5 +17,6 @@ defmodule Snippit.Repo.Migrations.CreateCollectionSnippets do
     create index(:collection_snippets, [:from_collection_id])
     create index(:collection_snippets, [:snippet_id])
     create index(:collection_snippets, [:added_by_id])
+    create index(:collection_snippets, [:collection_id, :snippet_id], unique: true)
   end
 end

@@ -15,26 +15,23 @@ alias Snippit.Users.User
 alias Snippit.Collections.Collection
 alias Snippit.AppInvites.AppInvite
 
-%User{
-  username: "user 1",
-  email: "user_1@snippit.dev",
-  spotify_id: "fake spotify id 1"
-} |> Repo.insert!()
+Enum.each(1..25, fn idx ->
+  %User{
+    username: "user #{idx} ooooooooohhhhhhh yeeaaaaaaaaaahhhhhhh",
+    email: "user_#{idx}@snippit.dev",
+    spotify_id: "fake spotify id #{idx}"
+  } |> Repo.insert!()
 
-%User{
-  username: "user 2",
-  email: "user_2@snippit.dev",
-  spotify_id: "fake spotify id 2"
-} |> Repo.insert!()
+  IO.inspect(idx)
+  %Collection{
+    name: "test",
+    description: "test",
+    created_by_id: idx
+  } |> Repo.insert!()
 
-%Collection{
-  name: "test",
-  description: "test",
-  created_by_id: 1
-} |> Repo.insert!()
-
-%AppInvite{
-  from_user_id: 1,
-  email: "lee.araneta@gmail.com",
-  collection_id: 1
-} |> Repo.insert!()
+  %AppInvite{
+    from_user_id: idx,
+    email: "lee.araneta@gmail.com",
+    collection_id: idx
+  } |> Repo.insert!()
+end)

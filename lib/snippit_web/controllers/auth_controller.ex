@@ -3,8 +3,6 @@ defmodule SnippitWeb.AuthController do
 
   def get_authorize_url() do
     client_id = Application.fetch_env!(:snippit, :spotify_auth)[:client_id]
-    client_secret = Application.fetch_env!(:snippit, :spotify_auth)[:client_secret]
-
     response_type = "code"
     scope = "streaming user-read-email user-read-private user-modify-playback-state"
     base_url = SnippitWeb.Endpoint.url()
@@ -61,7 +59,6 @@ defmodule SnippitWeb.AuthController do
   end
 
   def logout(conn, _params) do
-    IO.inspect(conn)
     SnippitWeb.UserAuth.log_out_user(conn)
   end
 

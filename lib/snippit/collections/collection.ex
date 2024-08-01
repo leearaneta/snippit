@@ -12,7 +12,7 @@ defmodule Snippit.Collections.Collection do
     field :description, :string
     field :is_private, :boolean, default: false
     field :is_editor, :boolean, virtual: true
-    field :is_invite, :boolean, virtual: true
+    field :invited_by, :any, virtual: true
 
     belongs_to :created_by, User, foreign_key: :created_by_id
     has_many :collection_snippets, CollectionSnippet, foreign_key: :collection_id

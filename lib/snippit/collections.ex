@@ -7,6 +7,7 @@ defmodule Snippit.Collections do
   alias Snippit.CollectionUsers
   alias Snippit.CollectionInvites.CollectionInvite
   alias Snippit.AppInvites
+  alias Snippit.AppInvites.AppInvite
   alias Snippit.Users
   alias Snippit.CollectionInvites
   alias Snippit.Users.User
@@ -15,84 +16,29 @@ defmodule Snippit.Collections do
   alias Snippit.Collections.Collection
   alias Snippit.CollectionUsers.CollectionUser
 
-  @spec list_collections() :: any()
-  @doc """
-  Returns the list of collections.
+  alias Swoosh.Email
+  alias Snippit.Mailer
 
-  ## Examples
+  import Phoenix.Component
 
-      iex> list_collections()
-      [%Collection{}, ...]
-
-  """
   def list_collections do
     Repo.all(Collection)
   end
 
-  @doc """
-  Gets a single collection.
-
-  Raises `Ecto.NoResultsError` if the Collection does not exist.
-
-  ## Examples
-
-      iex> get_collection!(123)
-      %Collection{}
-
-      iex> get_collection!(456)
-      ** (Ecto.NoResultsError)
-
-  """
   def get_collection!(id), do: Repo.get!(Collection, id)
 
-  @doc """
-  Creates a collection.
-
-  ## Examples
-
-      iex> create_collection(%{field: value})
-      {:ok, %Collection{}}
-
-      iex> create_collection(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def create_collection(attrs \\ %{}) do
     %Collection{}
     |> Collection.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a collection.
-
-  ## Examples
-
-      iex> update_collection(collection, %{field: new_value})
-      {:ok, %Collection{}}
-
-      iex> update_collection(collection, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_collection(%Collection{} = collection, attrs) do
     collection
     |> Collection.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a collection.
-
-  ## Examples
-
-      iex> delete_collection(collection)
-      {:ok, %Collection{}}
-
-      iex> delete_collection(collection)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_collection(%Collection{} = collection) do
     Repo.delete(collection)
   end
@@ -128,11 +74,23 @@ defmodule Snippit.Collections do
     %User{} = from_user,
     %User{} = to_user
   ) do
-    CollectionInvites.create_collection_invite(%{
-      collection_id: collection.id,
-      from_user_id: from_user.id,
-      user_id: to_user.id
-    })
+    if collection.created_by_id != to_user.id do
+      existing_collection_user = Ecto.Query.from(cu in CollectionUser,
+        where: cu.user_id == ^to_user.id,
+        where: cu.collection_id == ^collection.id
+      ) |> Repo.one()
+      if !existing_collection_user do
+        payload = %{
+          collection_id: collection.id,
+          from_user_id: from_user.id,
+          user_id: to_user.id
+        }
+        case CollectionInvites.create_collection_invite(payload) do
+          {:ok, _} -> deliver_collection_shared_email(to_user.email, from_user, collection)
+          {:error, _} -> nil
+        end
+      end
+    end
   end
 
   defp share_collection_with_email(
@@ -148,11 +106,16 @@ defmodule Snippit.Collections do
         existing_user
       )
     else
-      AppInvites.create_app_invite(%{
+      payload = %{
         collection_id: collection.id,
         from_user_id: from_user.id,
         email: email_to_invite
-      })
+      }
+      case AppInvites.create_app_invite(payload) do
+        {:ok, _} ->
+          deliver_collection_shared_email(email_to_invite, from_user, collection)
+        {:error, _} -> nil
+      end
     end
   end
 
@@ -164,26 +127,26 @@ defmodule Snippit.Collections do
   ) do
     Repo.transaction(fn ->
       collection_invite_tasks = users_to_share_with
-        |>  Enum.map(fn user_to_share_with ->
-              Task.async(fn ->
-                share_collection_with_existing_user(
-                  collection,
-                  current_user,
-                  user_to_share_with
-                )
-              end)
+      |>  Enum.map(fn user_to_share_with ->
+            Task.async(fn ->
+              share_collection_with_existing_user(
+                collection,
+                current_user,
+                user_to_share_with
+              )
             end)
+          end)
 
       app_invite_tasks = emails_to_invite
-        |>  Enum.map(fn email_to_invite ->
-              Task.async(fn ->
-                share_collection_with_email(
-                  collection,
-                  current_user,
-                  email_to_invite
-                )
-              end)
+      |>  Enum.map(fn email_to_invite ->
+            Task.async(fn ->
+              share_collection_with_email(
+                collection,
+                current_user,
+                email_to_invite
+              )
             end)
+          end)
 
       Task.await_many(collection_invite_tasks ++ app_invite_tasks)
     end)
@@ -210,7 +173,7 @@ defmodule Snippit.Collections do
       inner_join: u in assoc(ci, :from_user),
       preload: [:created_by],
       preload: [collection_invites: {ci, from_user: u}],
-      select: %{c | is_invite: true}
+      select: %{c | invited_by: u}
   end
 
   defp delete_all_collection_invites(%Collection{} = collection) do
@@ -236,6 +199,76 @@ defmodule Snippit.Collections do
   def reject_invite(%Collection{} = collection) do
     delete_all_collection_invites(collection)
     {:ok, true}
+  end
+
+  defp email_layout(assigns) do
+    ~H"""
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+          body {
+            font-family: system-ui, sans-serif;
+            margin: 3em auto;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            max-width: 1024px;
+            padding: 0 1em;
+          }
+        </style>
+      </head>
+      <body>
+        <%= render_slot(@inner_block) %>
+      </body>
+    </html>
+    """
+  end
+
+  def collection_shared_content(assigns) do
+    base_url = SnippitWeb.Endpoint.url()
+    collection_url = URI.merge(base_url, "?collection=#{assigns.collection.id}")
+    assigns = Map.put(assigns, :collection_url, collection_url)
+    ~H"""
+    <.email_layout>
+      <p>Hi,</p>
+
+      <p><%= @username %> shared a collection "<%= @collection.name %>" with you! </p>
+
+      <a href={@collection_url}>Listen on Snippit</a>
+    </.email_layout>
+    """
+  end
+
+  def deliver_collection_shared_email(to_email, %User{} = from_user, %Collection{} = collection) do
+    template = collection_shared_content(%{username: from_user.username, collection: collection})
+    html = heex_to_html(template)
+    text = html_to_text(html)
+    email =
+      Email.new()
+      |> Email.to(to_email)
+      |> Email.from({"Snippit", "hello@snippit.studio"})
+      |> Email.subject("Collection shared with you: \"#{collection.name}\"")
+      |> Email.html_body(html)
+      |> Email.text_body(text)
+
+    with {:ok, _metadata} <- Mailer.deliver(email) do
+      {:ok, email}
+    end
+  end
+
+  defp heex_to_html(template) do
+    template
+    |> Phoenix.HTML.Safe.to_iodata()
+    |> IO.iodata_to_binary()
+  end
+
+  defp html_to_text(html) do
+    html
+    |> Floki.parse_document!()
+    |> Floki.find("body")
+    |> Floki.text(sep: "\n\n")
   end
 
 end

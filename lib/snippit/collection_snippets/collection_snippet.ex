@@ -21,6 +21,9 @@ defmodule Snippit.CollectionSnippets.CollectionSnippet do
     collection_snippet
     |> cast(attrs, [:index, :collection_id, :from_collection_id, :snippet_id, :added_by_id, :description])
     |> validate_required([:collection_id, :snippet_id, :added_by_id])
-    |> IO.inspect()
+    |> unique_constraint([:collection_id, :snippet_id],
+      name: :collection_snippets_collection_id_snippet_id_index,
+      message: "snippet already belongs to that collection!"
+    )
   end
 end

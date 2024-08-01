@@ -1,4 +1,6 @@
 defmodule SnippitWeb.RepostSnippet do
+  alias Snippit.Collections.Collection
+  alias Snippit.CollectionSnippets.CollectionSnippet
   use SnippitWeb, :live_component
 
   import SnippitWeb.CustomComponents, warn: false
@@ -7,17 +9,26 @@ defmodule SnippitWeb.RepostSnippet do
   alias SnippitWeb.AddToCollection
 
   def mount(socket) do
-    {:ok, assign(socket, :repost_collection, nil)}
+    socket = socket
+      |> assign(:repost_collection, nil)
+      |> assign(:error, nil)
+
+    {:ok, socket}
   end
 
   def update(assigns, socket) do
-    if Map.get(assigns, :snippet) do
-      socket = socket
-      |> assign(:repost_description, assigns.snippet.description)
-      |> assign(assigns)
-      {:ok, socket}
-    else
-      {:ok, assign(socket, assigns)}
+    case assigns do
+      %{snippet: %CollectionSnippet{} = snippet} ->
+        socket = socket
+        |> assign(:repost_description, snippet.description)
+        |> assign(assigns)
+        {:ok, socket}
+      %{repost_collection: %Collection{}} ->
+        socket = socket
+        |> assign(:error, nil)
+        |> assign(assigns)
+        {:ok, socket}
+      _ -> {:ok, assign(socket, assigns)}
     end
   end
 
@@ -34,15 +45,12 @@ defmodule SnippitWeb.RepostSnippet do
       added_by_id: socket.assigns.user_id
     }
     socket = start_async(socket, :snippet_reposted, fn ->
-      case CollectionSnippets.create_collection_snippet(params) do
-        {:ok, cs} -> cs
-        other -> IO.inspect(other)
-      end
+      CollectionSnippets.create_collection_snippet(params)
     end)
     {:noreply, socket}
   end
 
-  def handle_async(:snippet_reposted, {:ok, cs}, socket) do
+  def handle_async(:snippet_reposted, {:ok, {:ok, %CollectionSnippet{} = cs}}, socket) do
     socket = socket
       |> assign(:repost_description, nil)
       |> assign(:repost_collection, nil)
@@ -50,6 +58,11 @@ defmodule SnippitWeb.RepostSnippet do
       |> push_patch(to: ~p"/?collection=#{cs.collection_id}")
 
     {:noreply, socket}
+  end
+
+  def handle_async(:snippet_reposted, {:ok, {:error, changeset}}, socket) do
+    error = changeset.errors |> hd() |> elem(1) |> elem(0)
+    {:noreply, assign(socket, :error, error)}
   end
 
   def render(assigns) do
@@ -60,7 +73,15 @@ defmodule SnippitWeb.RepostSnippet do
           :if={@snippet}
           class="h-[75vh] flex flex-col gap-8"
         >
-          <div class="text-2xl"> Add Snippet To Collection </div>
+          <div class="flex justify-between items-center">
+            <div class="text-2xl"> Add Snippet To Collection </div>
+            <div
+              :if={@error}
+              class="text-red-400 text-sm"
+            >
+              <%= @error %>
+            </div>
+          </div>
           <div class="flex flex-1 justify-between">
             <div class="flex h-full flex-col gap-8 w-64">
               <.form
