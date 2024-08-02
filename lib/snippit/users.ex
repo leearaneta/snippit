@@ -11,15 +11,14 @@ defmodule Snippit.Users do
   alias Snippit.Repo
   alias Snippit.Users.User
 
-
-  @spec get_user_attrs_by_session_token(any()) ::
-          nil | %{email: any(), spotify_id: any(), username: any()}
   def get_user_attrs_by_session_token(token) do
     url = "https://api.spotify.com/v1/me"
 
     headers = ["Authorization": "Bearer #{token}"]
     case HTTPoison.get(url, headers) do
       {:ok, %{body: raw}} ->
+        IO.inspect(raw)
+        IO.inspect(headers)
         case Poison.decode!(raw) do
           %{"id" => spotify_id, "display_name" => username, "email" => email} ->
             %{spotify_id: spotify_id, username: username, email: email}

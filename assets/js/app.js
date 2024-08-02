@@ -172,7 +172,6 @@ hooks.root = {
     })
 
     this.handleEvent('seek', ({ ms }) => {
-      console.log('hi', ms)
       this.player.seek(ms)
     })
 
