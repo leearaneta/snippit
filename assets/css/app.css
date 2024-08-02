@@ -8,3 +8,7 @@ body > div {
   flex: 1;
   height: 90%;
 }
+
+.gradient {
+  background: linear-gradient(90deg, #3f87a6,  #f69d3c);
+}

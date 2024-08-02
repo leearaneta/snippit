@@ -68,7 +68,7 @@ defmodule SnippitWeb.AddToCollection do
 
   def render(assigns) do
     ~H"""
-      <div class="flex flex-col overflow-hidden">
+      <div class="flex flex-col overflow-hidden h-full">
         <div
           :if={!@creating_collection?}
           class="flex flex-col gap-1 overflow-hidden"

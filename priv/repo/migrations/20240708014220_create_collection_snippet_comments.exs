@@ -4,8 +4,8 @@ defmodule Snippit.Repo.Migrations.CreateCollectionSnippetComments do
   def change do
     create table(:collection_snippet_comments) do
       add :comment, :string, null: false
-      add :collection_snippet_id, references(:collection_snippets, on_delete: :nothing), null: false
-      add :user_id, references(:users, on_delete: :nothing), null: false
+      add :collection_snippet_id, references(:collection_snippets, on_delete: :delete_all), null: false
+      add :user_id, references(:users, on_delete: :nilify_all)
 
       timestamps(type: :utc_datetime)
     end

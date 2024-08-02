@@ -49,6 +49,9 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def handle_event("track_selected", %{"idx" => idx}, socket) do
+    %{user_token: user_token, device_id: device_id} = socket.assigns
+    SpotifyApi.set_device_id(user_token, device_id)
+
     selected_track = socket.assigns.track_search_results
     |> Enum.at(String.to_integer(idx))
 
@@ -324,16 +327,30 @@ defmodule SnippitWeb.AddSnippet do
               >
                 <div
                   id="track-marker"
-                  class="absolute left-[-2px] h-[6px] w-[4px] translate-y-[-10px] cursor-pointer bg-red-400"
+                  class="absolute left-[-4px] h-[8px] w-[8px] rounded-full translate-y-[-10px] cursor-pointer bg-rose-400 z-20"
                   style={"transform:translateX(#{@track_ms * @track_width_px / @selected_track.duration_ms}px) translateY(-10px)"}
                 />
                 <div
                   class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-orange-400"
-                  style={"transform:translateX(#{@start_ms * @track_width_px / @selected_track.duration_ms}px)"}
+                  style={"transform:translateX(#{@start_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
                 />
                 <div
                   class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-orange-400"
-                  style={"transform:translateX(#{@end_ms * @track_width_px / @selected_track.duration_ms}px)"}
+                  style={"transform:translateX(#{@end_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
+                />
+                <div
+                  id="background"
+                  class="cursor-pointer h-[15px] absolute left-0 translate-y-[-15px] w-full"
+                />
+                <div
+                  id="left-mask"
+                  class="h-[15px] absolute left-0 origin-left w-full bg-white z-10"
+                  style={"transform:translateY(-15px) scaleX(#{@start_ms / @selected_track.duration_ms})"}
+                />
+                <div
+                  id="right-mask"
+                  class="h-[15px] absolute right-0 origin-right w-full bg-white z-10"
+                  style={"transform:translateY(-15px) scaleX(#{(@selected_track.duration_ms - @end_ms) / @selected_track.duration_ms})"}
                 />
               </div>
             </div>

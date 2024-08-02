@@ -69,6 +69,8 @@ if config_env() == :prod do
     client_id: System.fetch_env!("SPOTIFY_CLIENT_ID"),
     client_secret: System.fetch_env!("SPOTIFY_CLIENT_SECRET")
 
+  config :snippit, Snippit.Mailer, api_key: System.fetch_env!("RESEND_API_KEY")
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

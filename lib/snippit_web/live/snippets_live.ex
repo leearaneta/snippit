@@ -146,7 +146,7 @@ defmodule SnippitWeb.SnippetsLive do
               </div>
               <div class="flex gap-8">
                 <.button
-                  class="w-24"
+                  class="w-24 bg-red-600"
                   phx-click="snippet_deleted"
                   phx-target={@myself}
                 >
@@ -230,9 +230,9 @@ defmodule SnippitWeb.SnippetsLive do
         id={"snippet-info-#{@now_playing_snippet.id}"}
         :if={@now_playing_snippet && @now_playing_snippet.collection_id == @selected_collection.id}
         phx-mounted={JS.show(transition: {"ease-out-duration-100", "translate-y-16 opacity-0", "translate-y-0 opacity-100"})}
-        class="hidden fixed bottom-12 right-12 shadow-2xl rounded-2xl p-8 bg-white transition-transform transition-opacity"
+        class="hidden fixed bottom-12 right-12 transition-transform transition-opacity"
       >
-        <div class="flex flex-col gap-4">
+        <div class="flex w-[32rem] flex-col gap-4 shadow-2xl rounded-2xl p-8 bg-white">
           <div class="flex gap-8 justify-between">
             <div
               class="flex-1 cursor-pointer"

@@ -192,6 +192,9 @@ hooks.track = {
     const width = rect.width
     const [bound1El, bound2El] = this.el.querySelectorAll('.bound-marker')
     const trackEl = this.el.querySelector('#track-marker')
+    const backgroundEl = this.el.querySelector('#background')
+    const leftMaskEl = this.el.querySelector('#left-mask')
+    const rightMaskEl = this.el.querySelector('#right-mask')
 
     this.pushEventTo(this.el, 'width_computed', width)
     let durationMs, isPlaying
@@ -204,7 +207,7 @@ hooks.track = {
       },
       track: {
         el: trackEl, isDragging: false
-      }
+      },
     }
 
     const markers = ['bound1', 'bound2', 'track']
@@ -227,6 +230,7 @@ hooks.track = {
             x = width
           }
           applyXTransformToMarker(marker, x)
+          // applyMaskScaling()
         }
       })
     })
@@ -246,6 +250,15 @@ hooks.track = {
     function applyXTransformToMarker(markerName, x) {
       const y = getTranslateY(state[markerName].el)
       state[markerName].el.style.transform = `translateX(${x}px) translateY(${y}px)`
+    }
+
+    function applyMaskScaling() {
+      const boundsPx = [getTranslateX(state.bound1.el), getTranslateX(state.bound2.el)]
+      const y = getTranslateY(leftMaskEl)
+      const leftScale = Math.min(...boundsPx) / width
+      leftMaskEl.style.transform = `scaleX(${leftScale}) translateY(${y}px)`
+      const rightScale = (width - Math.max(...boundsPx)) / width
+      rightMaskEl.style.transform = `scaleX(${rightScale}) translateY(${y}px)`
     }
 
     function getMsFromMarkerName(name) {
@@ -268,6 +281,12 @@ hooks.track = {
           }
         }
       })
+    })
+
+    backgroundEl.addEventListener('mousedown', (e) => {
+      const x = e.clientX - rect.left
+      applyXTransformToMarker('track', x)
+      state.track.isDragging = true
     })
 
     this.handleEvent('initialize_audio', ({ end_ms, spotify_url }) => {

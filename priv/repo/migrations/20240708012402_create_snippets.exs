@@ -12,7 +12,7 @@ defmodule Snippit.Repo.Migrations.CreateSnippets do
       add :album, :string, null: false
       add :thumbnail_url, :string, null: false
       add :image_url, :string, null: false
-      add :created_by_id, references(:users, on_delete: :nothing), null: false
+      add :created_by_id, references(:users, on_delete: :nilify_all)
 
       timestamps(type: :utc_datetime)
     end

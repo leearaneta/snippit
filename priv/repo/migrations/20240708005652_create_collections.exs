@@ -6,7 +6,7 @@ defmodule Snippit.Repo.Migrations.CreateCollections do
       add :name, :string, null: false
       add :description, :string
       add :is_private, :boolean, default: false, null: false
-      add :created_by_id, references(:users, on_delete: :nothing)
+      add :created_by_id, references(:users, on_delete: :nilify_all)
 
       timestamps(type: :utc_datetime)
     end

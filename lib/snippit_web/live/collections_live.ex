@@ -323,7 +323,7 @@ defmodule SnippitWeb.CollectionsLive do
                 </div>
                 <div class="flex gap-8">
                   <.button
-                    class="w-24"
+                    class="w-24 bg-red-600"
                     phx-click={"delete_collection"}
                     phx-target={@myself}
                   >
