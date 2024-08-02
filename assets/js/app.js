@@ -80,6 +80,7 @@ hooks.root = {
         const player_url = track_window.current_track.uri
         checkForOutOfBoundsTrack(position)
         updatePlayId({ paused, position })
+        console.log(paused, position, loading, track_window)
         this.pushEvent('player_state_changed', { paused, position, loading, player_url })
       }
 
@@ -104,7 +105,7 @@ hooks.root = {
       startMs = start_ms
       endMs = end_ms
       this.player.pause().then(() => {
-        this.player.seek(start_ms)
+        this.player.seek(startMs)
       })
     })
 
@@ -171,6 +172,7 @@ hooks.root = {
     })
 
     this.handleEvent('seek', ({ ms }) => {
+      console.log('hi', ms)
       this.player.seek(ms)
     })
 
@@ -286,11 +288,14 @@ hooks.track = {
     backgroundEl.addEventListener('mousedown', (e) => {
       const x = e.clientX - rect.left
       applyXTransformToMarker('track', x)
+      isPlaying = false
       state.track.isDragging = true
     })
 
     this.handleEvent('initialize_audio', ({ end_ms, spotify_url }) => {
       this.spotifyUrl = spotify_url
+      applyXTransformToMarker('track', 0)
+      isPlaying = false
       durationMs = end_ms
     })
 

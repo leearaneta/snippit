@@ -18,6 +18,7 @@ defmodule SnippitWeb.AddSnippet do
     |> assign(:track_search_results, [])
     |> assign(:selected_track, nil)
     |> assign(:start_ms, 0)
+    |> assign(:track_ms, 0)
     |> assign(:end_ms, nil)
     |> assign(:track_width_px, 0)
     |> assign(:collection_to_associate, nil)
@@ -49,8 +50,8 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def handle_event("track_selected", %{"idx" => idx}, socket) do
-    %{user_token: user_token, device_id: device_id} = socket.assigns
-    SpotifyApi.set_device_id(user_token, device_id)
+    IO.inspect(socket.assigns.device_id)
+    # SpotifyApi.set_device_id(user_token, device_id) |> IO.inspect()
 
     selected_track = socket.assigns.track_search_results
     |> Enum.at(String.to_integer(idx))
@@ -119,7 +120,11 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def handle_event("track_marker_changed", ms, socket) do
-    {:noreply, push_event(socket, "seek", %{ms: ms})}
+    if !socket.assigns.device_connected? do
+      {:noreply, assign(socket, :track_ms, ms)}
+    else
+      {:noreply, push_event(socket, "seek", %{ms: ms})}
+    end
   end
 
   def handle_event("position_updated", ms, socket) do
@@ -127,19 +132,29 @@ defmodule SnippitWeb.AddSnippet do
   end
 
   def handle_event("toggle_play", _, socket) do
-    if socket.assigns.player_url == socket.assigns.selected_track.spotify_url do
-      {:noreply, push_event(socket, "toggle_play", %{})}
-    else
-      Task.start(fn ->
-        SpotifyApi.play_track_from_ms(
-          socket.assigns.user_token,
-          socket.assigns.device_id,
-          socket.assigns.selected_track.spotify_url,
-          socket.assigns.start_ms
-        )
-      end)
-      {:noreply, socket}
-    end
+    %{
+      device_connected?: device_connected?,
+      player_url: player_url,
+      selected_track: selected_track,
+      playing?: playing?,
+      user_token: user_token,
+      device_id: device_id,
+      track_ms: track_ms
+    } = socket.assigns
+    cond do
+      device_connected? && player_url == selected_track.spotify_url ->
+        {:noreply, push_event(socket, "toggle_play", %{})}
+      !device_connected? && playing? ->
+        Task.start(fn ->
+          SpotifyApi.pause(user_token, device_id)
+        end)
+        {:noreply, socket}
+      true ->
+        Task.start(fn ->
+          SpotifyApi.play_track_from_ms(user_token, device_id, selected_track.spotify_url, track_ms)
+        end)
+        {:noreply, socket}
+      end
   end
 
   def handle_event("backward", _, socket) do

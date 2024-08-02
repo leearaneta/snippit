@@ -18,8 +18,16 @@ defmodule SnippitWeb.SnippetsLive do
   end
 
   def play_snippet(socket, snippet) do
-    socket = if socket.assigns.player_url == snippet.snippet.spotify_url do
-      if socket.assigns.playing? do
+    %{
+      player_url: player_url,
+      user_token: user_token,
+      device_id: device_id,
+      device_connected?: device_connected?,
+      playing?: playing?
+    } = socket.assigns
+
+    socket = if player_url == snippet.snippet.spotify_url && device_connected? do
+      if playing? do
         push_event(socket, "pause", %{})
       else
         push_event(socket, "restart", %{})
@@ -27,8 +35,8 @@ defmodule SnippitWeb.SnippetsLive do
     else
       Task.start(fn ->
         SpotifyApi.play_track_from_ms(
-          socket.assigns.user_token,
-          socket.assigns.device_id,
+          user_token,
+          device_id,
           snippet.snippet.spotify_url,
           snippet.snippet.start_ms
         )
@@ -98,6 +106,13 @@ defmodule SnippitWeb.SnippetsLive do
     {:noreply, socket}
   end
 
+  def handle_event("track_clicked", %{"url" => url}, socket) do
+    socket = socket
+    |> assign(:now_playing_snippet, nil)
+    |> push_event("track_clicked", %{"url" => url})
+    {:noreply, socket}
+  end
+
   defp get_human_readable_time(ms) do
     secs = trunc(ms / 1000)
     remainder = rem(secs, 60)
@@ -128,6 +143,7 @@ defmodule SnippitWeb.SnippetsLive do
         collections={@collections}
         selected_collection={@selected_collection}
         device_id={@device_id}
+        device_connected?={@device_connected?}
         playing?={@playing?}
         player_url={@player_url}
         track_ms={@audio_ms}
@@ -237,6 +253,7 @@ defmodule SnippitWeb.SnippetsLive do
             <div
               class="flex-1 cursor-pointer"
               phx-click="track_clicked"
+              phx-target={@myself}
               phx-value-url={@now_playing_snippet.snippet.spotify_url}
             >
             <.track_display

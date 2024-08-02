@@ -62,7 +62,6 @@ defmodule Snippit.SpotifyApi do
     }
   end
 
-  @spec search_tracks(any(), map()) :: list()
   def search_tracks(token, search_params) do
     keys = ["track", "album", "artist"]
     search_query = search_params
@@ -84,6 +83,11 @@ defmodule Snippit.SpotifyApi do
     body = %{uris: [track_id], position_ms: from_ms}
     params = %{device_id: device_id}
     put(token, "https://api.spotify.com/v1/me/player/play", body, params)
+  end
+
+  def pause(token, device_id) do
+    params = %{device_id: device_id}
+    put(token, "https://api.spotify.com/v1/me/player/play", %{}, params)
   end
 
   def set_device_id(token, device_id) do

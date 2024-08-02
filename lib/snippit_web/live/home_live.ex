@@ -32,6 +32,7 @@ defmodule SnippitWeb.HomeLive do
     |> assign(:collection_snippets, [])
     |> assign(:user_token, session["user_token"])
     |> assign(:device_id, nil)
+    |> assign(:device_connected?, false)
     |> assign(:playing?, false)
     |> assign(:loading?, false)
     |> assign(:player_url, nil)
@@ -84,29 +85,17 @@ defmodule SnippitWeb.HomeLive do
 
 
   def handle_event("device_not_connected", _, socket) do
-    {:noreply, reset_audio_state(socket)}
+    {:noreply, assign(socket, :device_connected?, false)}
   end
 
   def handle_event("player_state_changed", state, socket) do
     socket = socket
+      |> assign(:device_connected?, true)
       |> assign(:playing?, !state["paused"])
       |> assign(:player_url, state["player_url"])
       |> assign(:loading?, state["loading"])
       |> assign(:audio_ms, state["position"])
       |> push_event("player_state_changed", %{"playing" => !state["paused"], "position" => state["position"]})
-    {:noreply, socket}
-  end
-
-  defp reset_audio_state(socket) do
-    socket
-    |> assign(:player_url, nil)
-    |> assign(:playing?, false)
-  end
-
-  def handle_event("track_clicked", %{"url" => url}, socket) do
-    socket = socket
-    |> reset_audio_state()
-    |> push_event("track_clicked", %{"url" => url})
     {:noreply, socket}
   end
 
@@ -289,6 +278,7 @@ defmodule SnippitWeb.HomeLive do
             audio_ms={@audio_ms}
             player_url={@player_url}
             device_id={@device_id}
+            device_connected?={@device_connected?}
             playing?={@playing?}
             loading?={@loading?}
           />
