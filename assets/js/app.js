@@ -176,7 +176,9 @@ hooks.root = {
     })
 
     this.handleEvent('track_clicked', ({ url }) => {
-      window.open(url)
+      const [a, b, trackId] = url.split(':')
+      const webPlayerUrl = `https://open.spotify.com/track/${trackId}`
+      window.open(webPlayerUrl)
       startMs = 0
       endMs = null
     })

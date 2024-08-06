@@ -122,7 +122,7 @@ defmodule SnippitWeb.SnippetsLive do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div id="snippets_root">
       <.live_component
         module={RepostSnippet}
         id={:repost}
@@ -250,17 +250,13 @@ defmodule SnippitWeb.SnippetsLive do
       >
         <div class="flex w-[32rem] flex-col gap-4 shadow-2xl rounded-2xl p-8 bg-white">
           <div class="flex gap-8 justify-between">
-            <div
-              class="flex-1 cursor-pointer"
-              phx-click="track_clicked"
-              phx-target={@myself}
-              phx-value-url={@now_playing_snippet.snippet.spotify_url}
-            >
-            <.track_display
-              track={@now_playing_snippet.snippet.track}
-              artist={@now_playing_snippet.snippet.artist}
-              thumbnail_url={@now_playing_snippet.snippet.thumbnail_url}
-            />
+            <div class="flex-1">
+              <.track_display
+                track={@now_playing_snippet.snippet.track}
+                artist={@now_playing_snippet.snippet.artist}
+                thumbnail_url={@now_playing_snippet.snippet.thumbnail_url}
+                spotify_url={@now_playing_snippet.snippet.spotify_url}
+              />
             </div>
             <div class="flex flex-col items-end">
               <div>

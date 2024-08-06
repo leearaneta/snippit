@@ -95,20 +95,31 @@ defmodule SnippitWeb.HelloLive do
         />
       </svg>
     </div>
-    <div class="px-4 py-10 sm:px-6 sm:py-28 lg:px-8 xl:px-28 xl:pt-[24rem] xl:pb-32">
-      <div class="mx-auto max-w-xl lg:mx-0">
-        <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-zinc-900 text-balance">
+    <div class="h-full px-4 py-10 sm:px-6 sm:py-28 lg:px-8 xl:px-28 xl:py-32 flex flex-col justify-between">
+      <div class="flex flex-col gap-4 w-[36rem]">
+        <p class="text-base text-zinc-600">
+          hey 👋 we're working on getting spotify's permission to deploy this app.
+        </p>
+        <p class="text-base text-zinc-600">
+          if you're really eager to use it, you can email us at hello@snippit.studio and we'll allowlist your email!
+        </p>
+        <p class="text-base text-zinc-600">
+          thank you for your patience 🙏
+        </p>
+      </div>
+      <div class="flex flex-col gap-4 mx-auto max-w-xl lg:mx-0">
+        <p class="text-[2rem] font-semibold leading-10 tracking-tighter text-zinc-900 text-balance">
           musical moodboarding (with friends)
         </p>
-        <p class="mt-4 mb-2 text-base leading-7 text-zinc-600">
+        <p class="text-base leading-7 text-zinc-600">
           create snippets of tracks and organize them to your heart's desire
         </p>
-        <p class="mt-2 mb-8 text-sm leading-7 text-zinc-600">
+        <p class="text-sm leading-7 text-zinc-600">
           (requires spotify premium)
         </p>
         <button
           class={[
-            "rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
+            "rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 w-36",
             "text-sm font-semibold leading-6 text-white active:text-white/80"
           ]}
           phx-click={show_modal("privacy_policy")}

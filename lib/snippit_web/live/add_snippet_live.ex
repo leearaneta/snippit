@@ -268,11 +268,12 @@ defmodule SnippitWeb.AddSnippet do
                 phx-click="track_selected"
                 phx-target={@myself}
               >
-                <img src={track.thumbnail_url} width="50" height="50" />
-                <div class="flex flex-col">
-                  <span class="font-bold"> <%= track.track %> </span>
-                  <span> <%= track.artist %> </span>
-                </div>
+                <.track_display
+                  track={track.track}
+                  artist={track.artist}
+                  thumbnail_url={track.thumbnail_url}
+                  spotify_url={track.spotify_url}
+                />
               </li>
             </ul>
           </div>
@@ -286,6 +287,7 @@ defmodule SnippitWeb.AddSnippet do
                   track={@selected_track.track}
                   artist={@selected_track.artist}
                   thumbnail_url={@selected_track.thumbnail_url}
+                  spotify_url={@selected_track.spotify_url}
                 />
               </div>
               <.form

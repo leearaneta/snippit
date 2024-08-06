@@ -124,12 +124,20 @@ defmodule SnippitWeb.CustomComponents do
   attr :track, :string, required: true
   attr :artist, :string, required: true
   attr :thumbnail_url, :string, required: true
-  @spec track_display(map()) :: Phoenix.LiveView.Rendered.t()
+  attr :spotify_url, :string, required: true
   def track_display(assigns) do
     ~H"""
       <div class="flex gap-2">
-        <img src={@thumbnail_url} />
-        <div class="flex flex-col w-48">
+        <img
+          width="50"
+          height="50"
+          class="cursor-pointer"
+          phx-click="track_clicked"
+          phx-target="#snippets_root"
+          phx-value-url={@spotify_url}
+          src={@thumbnail_url}
+        />
+        <div class="flex flex-col w-60">
           <span class="font-bold overflow-hidden text-ellipsis whitespace-nowrap"> <%= @track %> </span>
           <span class="overflow-hidden text-ellipsis whitespace-nowrap"> <%= @artist %> </span>
         </div>
