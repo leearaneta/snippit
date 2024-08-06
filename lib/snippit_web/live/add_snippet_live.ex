@@ -345,15 +345,15 @@ defmodule SnippitWeb.AddSnippet do
               >
                 <div
                   id="track-marker"
-                  class="absolute left-[-4px] h-[8px] w-[8px] rounded-full translate-y-[-10px] cursor-pointer bg-rose-400 z-20"
+                  class="absolute left-[-4px] h-[8px] w-[8px] rounded-full translate-y-[-10px] cursor-pointer bg-black z-20"
                   style={"transform:translateX(#{@track_ms * @track_width_px / @selected_track.duration_ms}px) translateY(-10px)"}
                 />
                 <div
-                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-orange-400"
+                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-black"
                   style={"transform:translateX(#{@start_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
                 />
                 <div
-                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-orange-400"
+                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-black"
                   style={"transform:translateX(#{@end_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
                 />
                 <div
@@ -411,6 +411,7 @@ defmodule SnippitWeb.AddSnippet do
               <.button
                 phx-click="snippet_created"
                 phx-target={@myself}
+                disabled={!@collection_to_associate}
                 class="self-start"
               >
                 create snippet

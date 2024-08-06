@@ -60,6 +60,7 @@ defmodule SnippitWeb.AddToCollection do
   end
 
   def handle_event("create_collection_clicked", _, socket) do
+    socket.assigns.collection_changed.(nil)
     socket = socket
       |> assign(:selected_collection, nil)
       |> assign(:creating_collection?, true)
