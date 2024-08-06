@@ -179,6 +179,7 @@ defmodule SnippitWeb.SnippetsLive do
             <div
               phx-click="snippet_clicked"
               phx-target={@myself}
+              phx-value-id={@snippet_to_delete.id}
             >
               <.snippet_display
                 snippet={@snippet_to_delete}
@@ -254,6 +255,7 @@ defmodule SnippitWeb.SnippetsLive do
               <.track_display
                 track={@now_playing_snippet.snippet.track}
                 artist={@now_playing_snippet.snippet.artist}
+                album={@now_playing_snippet.snippet.album}
                 thumbnail_url={@now_playing_snippet.snippet.thumbnail_url}
                 spotify_url={@now_playing_snippet.snippet.spotify_url}
               />

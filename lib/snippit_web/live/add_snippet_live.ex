@@ -263,7 +263,7 @@ defmodule SnippitWeb.AddSnippet do
             <ul class="flex-1 flex flex-col gap-2 overflow-scroll">
               <li
                 :for={{track, i} <- Enum.with_index(@track_search_results)}
-                class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 h-[60px] pl-[5px]"
+                class="flex items-center gap-2 hover:bg-gray-100 pl-[5px]"
                 phx-value-idx={i}
                 phx-click="track_selected"
                 phx-target={@myself}
@@ -271,6 +271,7 @@ defmodule SnippitWeb.AddSnippet do
                 <.track_display
                   track={track.track}
                   artist={track.artist}
+                  album={track.album}
                   thumbnail_url={track.thumbnail_url}
                   spotify_url={track.spotify_url}
                 />
@@ -286,6 +287,7 @@ defmodule SnippitWeb.AddSnippet do
                 <.track_display
                   track={@selected_track.track}
                   artist={@selected_track.artist}
+                  album={@selected_track.album}
                   thumbnail_url={@selected_track.thumbnail_url}
                   spotify_url={@selected_track.spotify_url}
                 />

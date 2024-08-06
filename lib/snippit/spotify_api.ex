@@ -56,7 +56,7 @@ defmodule Snippit.SpotifyApi do
       spotify_url: track["uri"],
       artist: track["artists"]
         |> Enum.map(fn artist -> artist["name"] end)
-        |> Enum.join(" "),
+        |> Enum.join(", "),
       track: track["name"],
       duration_ms: track["duration_ms"]
     }
