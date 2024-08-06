@@ -105,4 +105,9 @@ defmodule Snippit.Users do
     {:ok, _} = create_collection_invites_from_app_invites(user)
     {:ok, user}
   end
+
+  def delete_user(%User{} = user) do
+    {:ok, user} = Repo.delete(user)
+    {:ok, user}
+  end
 end

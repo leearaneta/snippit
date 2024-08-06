@@ -1,4 +1,5 @@
 defmodule SnippitWeb.HomeLive do
+  alias Snippit.Users
   alias SnippitWeb.SnippetsLive
   alias Snippit.Collections
   alias Snippit.CollectionSnippets
@@ -37,6 +38,7 @@ defmodule SnippitWeb.HomeLive do
     |> assign(:loading?, false)
     |> assign(:player_url, nil)
     |> assign(:audio_ms, 0)
+    |> assign(:confirming_delete?, false)
 
     {:ok, socket}
   end
@@ -200,6 +202,19 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, redirect(socket, to: ~p"/auth/logout")}
   end
 
+  def handle_event("delete_account_clicked", _, socket) do
+    if !socket.assigns.confirming_delete? do
+      {:noreply, assign(socket, :confirming_delete?, true)}
+    else
+      Users.delete_user(socket.assigns.current_user)
+      {:noreply, redirect(socket, to: ~p"/auth/logout")}
+    end
+  end
+
+  def handle_event("user_modal_closed", _, socket) do
+    {:noreply, assign(socket, :confirming_delete?, false)}
+  end
+
   def render(assigns) do
     ~H"""
       <div
@@ -208,6 +223,34 @@ defmodule SnippitWeb.HomeLive do
         phx-hook="root"
         data-token={@user_token}
       >
+        <.modal
+          id="user"
+          on_cancel={JS.push("user_modal_closed")}
+        >
+          <div class="h-[28vh] flex flex-col gap-8 overflow-scroll">
+            <div class="text-2xl"> Your Profile </div>
+            <div class="flex flex-col gap-4">
+              <span> Username: <%= @current_user.username %> </span>
+              <span> Email: <%= @current_user.email %> </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <.button
+                class="w-32 bg-red-600"
+                phx-click="delete_account_clicked"
+              >
+                <span :if={!@confirming_delete?}> Delete Account </span>
+                <span :if={@confirming_delete?}> Confirm Delete </span>
+              </.button>
+              <div
+                :if={@confirming_delete?}
+                class="text-red-400 transition-opacity"
+                phx-mounted={JS.transition({"transform-opacity duration-100", "opacity-0", "opacity-100"})}
+              >
+                Are you sure? You'll lose all of your collections.
+              </div>
+            </div>
+          </div>
+        </.modal>
         <.live_component
           module={CollectionsLive}
           id={:show}

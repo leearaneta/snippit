@@ -21,7 +21,7 @@ defmodule SnippitWeb.Router do
     pipe_through :browser
 
     live "/", HomeLive
-    get "/hello", PageController, :hello
+    live "/hello", HelloLive
   end
 
   # Other scopes may use custom stacks.
@@ -51,6 +51,7 @@ defmodule SnippitWeb.Router do
   scope "/", SnippitWeb do
     pipe_through :browser
     get "/auth/logout", AuthController, :logout
+    delete "/auth/delete", AuthController, :delete_account
 
     pipe_through :redirect_if_user_is_authenticated
     get "/auth/login", AuthController, :login

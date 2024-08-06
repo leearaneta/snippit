@@ -260,22 +260,21 @@ defmodule SnippitWeb.AddSnippet do
                 <div class="flex-1" />
               </div>
             </.form>
-            <div class="flex-1 flex flex-col overflow-scroll">
-              <ul :for={{track, i} <- Enum.with_index(@track_search_results)}>
-                <li
-                  class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 h-[60px] pl-[5px]"
-                  phx-value-idx={i}
-                  phx-click="track_selected"
-                  phx-target={@myself}
-                >
-                  <img src={track.thumbnail_url} width="50" height="50" />
-                  <div class="flex flex-col">
-                    <span class="font-bold"> <%= track.track %> </span>
-                    <span> <%= track.artist %> </span>
-                  </div>
-                </li>
-              </ul>
-            </div>
+            <ul class="flex-1 flex flex-col gap-2 overflow-scroll">
+              <li
+                :for={{track, i} <- Enum.with_index(@track_search_results)}
+                class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 h-[60px] pl-[5px]"
+                phx-value-idx={i}
+                phx-click="track_selected"
+                phx-target={@myself}
+              >
+                <img src={track.thumbnail_url} width="50" height="50" />
+                <div class="flex flex-col">
+                  <span class="font-bold"> <%= track.track %> </span>
+                  <span> <%= track.artist %> </span>
+                </div>
+              </li>
+            </ul>
           </div>
           <div
             :if={@selected_track}

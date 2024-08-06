@@ -109,7 +109,7 @@ defmodule SnippitWeb.UserAuth do
     Poison.decode!(response.body)
   end
 
-  defp ensure_user_token(conn) do
+  def ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
       {token, conn}
     else
