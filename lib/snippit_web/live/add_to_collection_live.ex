@@ -76,7 +76,7 @@ defmodule SnippitWeb.AddToCollection do
         >
           <.form>
             <.input
-              label="add to collection:"
+              label="Add to collection:"
               type="hidden"
               name="hidden"
               value=""
@@ -101,7 +101,7 @@ defmodule SnippitWeb.AddToCollection do
                   phx-target={@myself}
                 >
                   <.icon name="hero-plus" class="w-4 h-4" />
-                  <span class="font-bold text-sm"> Create New Collection </span>
+                  <span class="font-bold text-sm"> Create new collection </span>
                 </button>
               </:pinned_item>
               <.collection_display collection={item}/>

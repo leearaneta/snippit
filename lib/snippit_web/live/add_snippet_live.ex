@@ -239,13 +239,13 @@ defmodule SnippitWeb.AddSnippet do
               <div class="flex gap-4 mb-4">
                 <.input
                   class="flex-1"
-                  label="track"
+                  label="Track"
                   field={@snippet_search_form["track"]}
                   phx-debounce="500"
                 />
                 <.input
                   class="flex-1"
-                  label="artist"
+                  label="Artist"
                   field={@snippet_search_form["artist"]}
                   phx-debounce="500"
                 />
@@ -253,7 +253,7 @@ defmodule SnippitWeb.AddSnippet do
               <div class="flex gap-4">
                 <.input
                   class="flex-1"
-                  label="album"
+                  label="Album"
                   field={@snippet_search_form["album"]}
                   phx-debounce="500"
                 />
@@ -263,7 +263,7 @@ defmodule SnippitWeb.AddSnippet do
             <ul class="flex-1 flex flex-col gap-2 overflow-scroll">
               <li
                 :for={{track, i} <- Enum.with_index(@track_search_results)}
-                class="flex items-center gap-2 hover:bg-gray-100 pl-[5px]"
+                class="flex items-center gap-2 hover:bg-zinc-100 pl-[5px] pr-[10px]"
                 phx-value-idx={i}
                 phx-click="track_selected"
                 phx-target={@myself}
@@ -274,6 +274,7 @@ defmodule SnippitWeb.AddSnippet do
                   album={track.album}
                   thumbnail_url={track.thumbnail_url}
                   spotify_url={track.spotify_url}
+                  list_item?={true}
                 />
               </li>
             </ul>
@@ -302,14 +303,14 @@ defmodule SnippitWeb.AddSnippet do
                 <div class="flex gap-2">
                   <.input
                     class="w-1/2 mt-1"
-                    label="start (ms)"
+                    label="Start (ms)"
                     name="start_ms"
                     value={@start_ms}
                     phx-debounce="500"
                   />
                   <.input
                     class="w-1/2 mt-1"
-                    label="end (ms)"
+                    label="End (ms)"
                     name="end_ms"
                     value={@end_ms}
                     phx-debounce="500"
@@ -341,7 +342,7 @@ defmodule SnippitWeb.AddSnippet do
               <div
                 id="track"
                 phx-hook="track"
-                class="w-[80%] px-4 h-[4px] bg-gray-400 relative"
+                class="w-[80%] px-4 h-[4px] bg-zinc-400 relative"
               >
                 <div
                   id="track-marker"
@@ -379,7 +380,7 @@ defmodule SnippitWeb.AddSnippet do
                   phx-target={@myself}
                 >
                   <.input
-                    label="description"
+                    label="Description"
                     name="description"
                     value={@description}
                     type="textarea"
@@ -414,7 +415,7 @@ defmodule SnippitWeb.AddSnippet do
                 disabled={!@collection_to_associate}
                 class="self-start"
               >
-                create snippet
+                Create snippet
               </.button>
             </div>
           </div>

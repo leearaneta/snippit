@@ -51,7 +51,7 @@ defmodule SnippitWeb.HelloLive do
             class="w-40"
             disabled={!@privacy_policy_accepted?}
           >
-            continue to snippit
+            Continue to Snippit
           </.button>
         </.form>
       </div>
@@ -119,13 +119,13 @@ defmodule SnippitWeb.HelloLive do
         </p>
         <button
           class={[
-            "rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 w-[9.25rem]",
+            "rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 w-[10rem]",
             "text-sm font-semibold leading-6 text-white active:text-white/80",
-            "flex gap-1 items-center"
+            "flex items-center justify-around"
           ]}
           phx-click={show_modal("privacy_policy")}
         >
-          <span> login via </span>
+          <span> Login via </span>
           <div class="pt-[2px]">
             <svg alt="spotify" width="60" height="20" viewBox="180 120 440 125" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="430" height="132" transform="translate(185 112)"/>

@@ -304,7 +304,7 @@ defmodule SnippitWeb.HomeLive do
               <div class="max-w-xl">
                 <%= @selected_collection.description %>
               </div>
-              <div class="max-w-96 whitespace-nowrap text-ellipsis overflow-hidden">
+              <div class="max-w-96 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-600">
                 created by <%= @selected_collection.created_by.username %>
               </div>
             </div>
@@ -334,10 +334,10 @@ defmodule SnippitWeb.HomeLive do
             </div>
             <div class="flex gap-12">
               <.button phx-click="accept_invite_clicked">
-                accept invite
+                Accept invite
               </.button>
               <.button phx-click="reject_invite_clicked">
-                reject invite
+                Reject invite
               </.button>
             </div>
           </div>
@@ -346,7 +346,7 @@ defmodule SnippitWeb.HomeLive do
          :if={!@selected_collection}
          class="flex justify-center items-center h-full w-full text-2xl pb-16"
         >
-          select or create a collection from the sidebar!
+          Select or create a collection from the sidebar!
         </div>
       </div>
     """

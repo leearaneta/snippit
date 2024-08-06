@@ -166,13 +166,13 @@ defmodule SnippitWeb.SnippetsLive do
                   phx-click="snippet_deleted"
                   phx-target={@myself}
                 >
-                  delete
+                  Delete
                 </.button>
                 <.button
                   class="w-24"
                   phx-click={hide_modal("delete_snippet")}
                 >
-                  cancel
+                  Cancel
                 </.button>
               </div>
             </div>
@@ -266,7 +266,7 @@ defmodule SnippitWeb.SnippetsLive do
                 -
                 <%= get_human_readable_time(@now_playing_snippet.snippet.end_ms) %>
               </div>
-              <div class="italic"> added by <%= @now_playing_snippet.added_by.username %> </div>
+              <div class="italic text-zinc-600 text-sm"> added by <%= @now_playing_snippet.added_by.username %> </div>
             </div>
           </div>
           <div :if={@now_playing_snippet.description} class="flex-1">

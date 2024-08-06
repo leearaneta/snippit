@@ -13,7 +13,7 @@ defmodule SnippitWeb.CustomComponents do
           <span class="font-bold overflow-hidden whitespace-nowrap text-ellipsis">
             <%= @collection.name %>
           </span>
-          <span class="overflow-hidden whitespace-nowrap text-ellipsis">
+          <span class="overflow-hidden whitespace-nowrap text-ellipsis text-sm text-zinc-600">
             <%= "created by " <> @collection.created_by.username %>
           </span>
         </div>
@@ -65,7 +65,7 @@ defmodule SnippitWeb.CustomComponents do
             <span class="pb-1" :if={!@loading? && @playing?}>
               <.icon name="hero-speaker-wave" class="animate-pulse w-4 h-4" />
             </span>
-            <span class="text-xs text-gray-500">
+            <span class="text-xs text-zinc-500">
               <%= get_human_readable_time(@snippet.snippet.end_ms - @snippet.snippet.start_ms) %>
             </span>
           </div>
@@ -131,9 +131,10 @@ defmodule SnippitWeb.CustomComponents do
   attr :thumbnail_url, :string, required: true
   attr :spotify_url, :string, required: true
   attr :album, :string, required: true
+  attr :list_item?, :boolean, default: false
   def track_display(assigns) do
     ~H"""
-      <div class="flex gap-2">
+      <div class="flex gap-2 w-full">
         <img alt={"#{@album} album artwork"} src={@thumbnail_url} />
         <div class="flex flex-col w-full min-w-0">
           <span
@@ -149,7 +150,10 @@ defmodule SnippitWeb.CustomComponents do
             <%= @artist %>
           </span>
           <a
-            class="flex items-center gap-1 cursor-pointer text-sm"
+            class={[
+              "flex items-center gap-1 cursor-pointer text-sm text-zinc-600",
+              @list_item? && "self-end"
+            ]}
             phx-click="track_clicked"
             phx-target="#snippets_root"
             phx-value-url={@spotify_url}

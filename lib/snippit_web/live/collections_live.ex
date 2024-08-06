@@ -364,7 +364,7 @@ defmodule SnippitWeb.CollectionsLive do
                         input_class="h-10"
                         icon="hero-envelope"
                         field={@app_invite_form[:email]}
-                        label="invite via email:"
+                        label="Invite via email:"
                         phx-debounce="250"
                       />
                       <.button
@@ -385,7 +385,7 @@ defmodule SnippitWeb.CollectionsLive do
                     items={@user_search_results}
                     search={@user_search}
                     el={@myself}
-                    label="search by username:"
+                    label="Search by username:"
                     :let={%{"item" => user}}
                   >
                     <div>

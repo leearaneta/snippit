@@ -89,7 +89,7 @@ defmodule SnippitWeb.RepostSnippet do
                 phx-target={@myself}
               >
                 <.input
-                  label="description"
+                  label="Description"
                   name="description"
                   type="textarea"
                   value={@repost_description}
@@ -115,13 +115,13 @@ defmodule SnippitWeb.RepostSnippet do
                   phx-click={"snippet_reposted"}
                   phx-target={@myself}
                 >
-                  repost
+                  Repost
                 </.button>
                 <.button
                   class="w-24"
                   phx-click={hide_modal("repost_snippet")}
                 >
-                  cancel
+                  Cancel
                 </.button>
               </div>
             </div>
