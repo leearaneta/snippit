@@ -63,7 +63,8 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: ["https://snippit.fly.dev", "https://snippit.studio"]
 
   config :snippit, :spotify_auth,
     client_id: System.fetch_env!("SPOTIFY_CLIENT_ID"),
