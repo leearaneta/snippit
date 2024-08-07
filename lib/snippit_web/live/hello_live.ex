@@ -15,7 +15,6 @@ defmodule SnippitWeb.HelloLive do
 
   def render(assigns) do
     ~H"""
-    <.flash_group flash={@flash} />
     <.modal id="privacy_policy">
       <div class="h-[64vh] flex flex-col gap-8 overflow-scroll">
         <div class="text-2xl font-bold"> Privacy Policy </div>
