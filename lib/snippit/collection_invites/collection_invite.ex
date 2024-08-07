@@ -19,5 +19,9 @@ defmodule Snippit.CollectionInvites.CollectionInvite do
     collection_invite
     |> cast(attrs, [:user_id, :from_user_id, :collection_id])
     |> validate_required([:user_id, :from_user_id, :collection_id])
+    |> unique_constraint([:user_id, :collection_id],
+      name: :collection_invites_user_id_collection_id_index,
+      message: "User has already been invited to this collection."
+    )
   end
 end

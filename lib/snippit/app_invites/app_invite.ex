@@ -16,6 +16,10 @@ defmodule Snippit.AppInvites.AppInvite do
     app_invite
     |> cast(attrs, [:email, :from_user_id, :collection_id])
     |> validate_required([:email, :from_user_id, :collection_id])
+    |> unique_constraint([:email, :collection_id],
+      name: :app_invites_email_collection_id_index,
+      message: "Email has already been invited to this collection."
+    )
   end
 
   def form_changeset(app_invite, attrs) do
