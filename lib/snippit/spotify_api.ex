@@ -87,7 +87,7 @@ defmodule Snippit.SpotifyApi do
 
   def pause(token, device_id) do
     params = %{device_id: device_id}
-    put(token, "https://api.spotify.com/v1/me/player/play", %{}, params)
+    put(token, "https://api.spotify.com/v1/me/player/pause", %{}, params)
   end
 
   def set_device_id(token, device_id) do
