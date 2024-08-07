@@ -85,10 +85,12 @@ defmodule SnippitWeb.CollectionsLive do
 
   def handle_async(:share_collection, {:ok, %Collection{} = _}, socket) do
     socket = socket
-      |> assign(:emails_to_invite, [])
-      |> assign(:users_to_share_with, [])
-      |> put_flash(:info, "collection successfully shared!")
-      |> push_event("hide_modal", %{"id" => "share_collection"})
+    |> assign(:emails_to_invite, [])
+    |> assign(:users_to_share_with, [])
+    |> assign(:user_search_results, [])
+    |> assign(:user_search, "")
+    |> put_flash(:info, "collection successfully shared!")
+    |> push_event("hide_modal", %{"id" => "share_collection"})
 
     {:noreply, socket}
   end

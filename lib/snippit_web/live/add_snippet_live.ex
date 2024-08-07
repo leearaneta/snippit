@@ -38,10 +38,11 @@ defmodule SnippitWeb.AddSnippet do
 
   def handle_event("search_form_change", form, socket) do
     user_token = socket.assigns.user_token
-
-    socket = start_async(socket, :load_track_search_results, fn ->
-      SpotifyApi.search_tracks(user_token, form)
-    end)
+    socket = socket
+    |>  start_async(:load_track_search_results, fn ->
+          SpotifyApi.search_tracks(user_token, form)
+        end)
+    |>  assign(:snippet_search_form, form |> to_form())
     {:noreply, socket}
   end
 
@@ -59,10 +60,14 @@ defmodule SnippitWeb.AddSnippet do
     bounds_form = %{"start_ms" => 0, "end_ms" => selected_track.duration_ms}
     |> to_form()
 
+    snippet_search_form = %{"track" => "", "artist" => "", "album" => ""}
+    |> to_form()
+
     socket = socket
     |> assign(:selected_track, selected_track)
     |> assign(:track_search_results, [])
     |> assign(:bounds_form, bounds_form)
+    |> assign(:snippet_search_form, snippet_search_form)
     |> assign(:description, "")
     |> assign(:start_ms, 0)
     |> assign(:end_ms, selected_track.duration_ms)
