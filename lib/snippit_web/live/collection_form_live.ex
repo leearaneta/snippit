@@ -85,7 +85,10 @@ defmodule SnippitWeb.CollectionFormLive do
 
   def render(assigns) do
     ~H"""
-      <div class="flex flex-col gap-2">
+      <div
+        class="flex flex-col gap-2"
+        phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
+      >
         <div class="font-bold">
           <%= @type == :edit && "Edit Collection" || "Create Collection" %>
         </div>
@@ -100,12 +103,12 @@ defmodule SnippitWeb.CollectionFormLive do
             <div class="flex-1 flex flex-col gap-2">
               <.input
                 phx-debounce="250"
-                label="name"
+                label="Name"
                 field={@collection_form[:name]}
               />
               <.input
                 phx-debounce="250"
-                label="description"
+                label="Description"
                 type="textarea"
                 field={@collection_form[:description]}
               />

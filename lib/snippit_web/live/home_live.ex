@@ -39,6 +39,7 @@ defmodule SnippitWeb.HomeLive do
     |> assign(:player_url, nil)
     |> assign(:audio_ms, 0)
     |> assign(:confirming_delete?, false)
+    |> assign(:user_has_spotify_premium?, true)
 
     {:ok, socket}
   end
@@ -57,13 +58,13 @@ defmodule SnippitWeb.HomeLive do
     if selected_collection do
       CollectionSnippets.subscribe(selected_collection.id)
       socket
-        |> start_async(:load_collection_snippets, fn ->
-          from(cs in CollectionSnippet,
-            where: cs.collection_id == ^selected_collection.id,
-            preload: [:snippet, :added_by]
-          )
-          |> Repo.all()
-        end)
+      |>  start_async(:load_collection_snippets, fn ->
+            from(cs in CollectionSnippet,
+              where: cs.collection_id == ^selected_collection.id,
+              preload: [:snippet, :added_by]
+            )
+            |> Repo.all()
+          end)
     else
       if collection_id do
         put_flash(socket, :error, "sorry, we can't find that collection.")
@@ -92,12 +93,12 @@ defmodule SnippitWeb.HomeLive do
 
   def handle_event("player_state_changed", state, socket) do
     socket = socket
-      |> assign(:device_connected?, true)
-      |> assign(:playing?, !state["paused"])
-      |> assign(:player_url, state["player_url"])
-      |> assign(:loading?, state["loading"])
-      |> assign(:audio_ms, state["position"])
-      |> push_event("player_state_changed", %{"playing" => !state["paused"], "position" => state["position"]})
+    |> assign(:device_connected?, true)
+    |> assign(:playing?, !state["paused"])
+    |> assign(:player_url, state["player_url"])
+    |> assign(:loading?, state["loading"])
+    |> assign(:audio_ms, state["position"])
+    |> push_event("player_state_changed", %{"playing" => !state["paused"], "position" => state["position"]})
     {:noreply, socket}
   end
 
@@ -115,18 +116,16 @@ defmodule SnippitWeb.HomeLive do
     socket = Phoenix.Component.update(socket, :collection_snippets, fn collection_snippets ->
       [Repo.preload(collection_snippet, :added_by) | collection_snippets]
     end)
-
     {:noreply, socket}
   end
 
   def handle_info({:collection_created, collection}, socket) do
     collection = Repo.preload(collection, :created_by)
     socket = socket
-      |>  Phoenix.Component.update(:collections_by_id, fn collections_by_id ->
-            Map.put(collections_by_id, collection.id, collection)
-          end)
-      |>  push_patch(to: ~p"/?collection=#{collection.id}")
-
+    |>  Phoenix.Component.update(:collections_by_id, fn collections_by_id ->
+          Map.put(collections_by_id, collection.id, collection)
+        end)
+    |>  push_patch(to: ~p"/?collection=#{collection.id}")
     {:noreply, socket}
   end
 
@@ -147,7 +146,9 @@ defmodule SnippitWeb.HomeLive do
     socket = Phoenix.Component.update(socket, :collections_by_id, fn collections_by_id ->
       Map.delete(collections_by_id, collection_id)
     end)
-    if socket.assigns.selected_collection.id == collection_id do
+
+    selected_collection = socket.assigns.selected_collection
+    if selected_collection && selected_collection.id == collection_id do
       {:noreply, assign(socket, :selected_collection, nil)}
     else
       {:noreply, socket}
@@ -215,6 +216,10 @@ defmodule SnippitWeb.HomeLive do
     {:noreply, assign(socket, :confirming_delete?, false)}
   end
 
+  def handle_event("spotify_free_detected", _, socket) do
+    {:noreply, assign(socket, :user_has_spotify_premium?, false)}
+  end
+
   def render(assigns) do
     ~H"""
       <div
@@ -228,14 +233,15 @@ defmodule SnippitWeb.HomeLive do
           on_cancel={JS.push("user_modal_closed")}
         >
           <div class="h-[28vh] flex flex-col gap-8 overflow-scroll">
-            <div class="text-2xl"> Your Profile </div>
+            <div class="text-2xl font-bold"> Your Profile </div>
             <div class="flex flex-col gap-4">
               <span> Username: <%= @current_user.username %> </span>
               <span> Email: <%= @current_user.email %> </span>
             </div>
             <div class="flex justify-between items-center">
               <.button
-                class="w-32 bg-red-600"
+                class="w-32"
+                kind="warning"
                 phx-click="delete_account_clicked"
               >
                 <span :if={!@confirming_delete?}> Delete Account </span>
@@ -244,7 +250,7 @@ defmodule SnippitWeb.HomeLive do
               <div
                 :if={@confirming_delete?}
                 class="text-red-400 transition-opacity"
-                phx-mounted={JS.transition({"transform-opacity duration-100", "opacity-0", "opacity-100"})}
+                phx-mounted={JS.transition({"transition-opacity duration-100", "opacity-0", "opacity-100"})}
               >
                 Are you sure? You'll lose all of your collections.
               </div>
@@ -259,7 +265,7 @@ defmodule SnippitWeb.HomeLive do
           current_user={@current_user}
         />
         <div
-          :if={@selected_collection}
+          :if={@selected_collection && @user_has_spotify_premium?}
           class="flex flex-col gap-12 pl-8 w-full"
         >
           <div class="flex flex-col gap-4">
@@ -343,10 +349,25 @@ defmodule SnippitWeb.HomeLive do
           </div>
         </div>
         <div
-         :if={!@selected_collection}
+         :if={!@selected_collection && @user_has_spotify_premium?}
          class="flex justify-center items-center h-full w-full text-2xl pb-16"
         >
           Select or create a collection from the sidebar!
+        </div>
+        <div
+         :if={!@user_has_spotify_premium?}
+         class="flex flex-col justify-center items-center h-full w-full pb-16 gap-16 px-32"
+        >
+          <div class="text-2xl">
+            Sorry, Snippit requires Spotify Premium in order to receive audio playback.
+          </div>
+          <div class="text-zinc-600 text-md">
+            Spotify Premium lets you play any track, ad-free and with better audio quality. Go to
+            <a class="text-blue-600" href="https://spotify.com/premium" target="_blank">
+              spotify.com/premium
+            </a>
+            to try it for free.
+          </div>
         </div>
       </div>
     """

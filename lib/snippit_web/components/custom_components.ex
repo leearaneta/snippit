@@ -117,7 +117,9 @@ defmodule SnippitWeb.CustomComponents do
                 value: %{"index" => index, "id" => item.id}
               )
             }
+            id={"#{item.id}:#{index}"}
             phx-target={@el}
+            phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
           >
             <%= render_slot(@inner_block, %{"item" => item, "index" => index}) %>
           </li>

@@ -89,12 +89,12 @@ defmodule SnippitWeb.AddSnippet do
       |> validate_number(
         :start_ms,
         greater_than_or_equal_to: 0,
-        message: "start must be greater than zero"
+        message: "Start must be greater than zero."
       )
       |> validate_number(
         :end_ms,
         less_than_or_equal_to: socket.assigns.selected_track.duration_ms,
-        message: "end must be less than duration of song"
+        message: "End must be less than duration of song."
       )
       |> validate_bounds_no_overlap()
 
@@ -226,10 +226,11 @@ defmodule SnippitWeb.AddSnippet do
         on_cancel={JS.push("back", target: @myself)}
       >
         <div class="h-[75vh] flex flex-col gap-8 overflow-hidden">
-          <div class="text-2xl"> Create Snippet </div>
+          <div class="text-2xl font-bold"> Create Snippet </div>
           <div
             :if={!@selected_track}
             class="flex-1 flex flex-col gap-8 overflow-hidden"
+            phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
           >
             <.form
               for={@snippet_search_form}
@@ -267,6 +268,8 @@ defmodule SnippitWeb.AddSnippet do
                 phx-value-idx={i}
                 phx-click="track_selected"
                 phx-target={@myself}
+                id={"#{track.track}:#{i}"}
+                phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
               >
                 <.track_display
                   track={track.track}
@@ -281,7 +284,9 @@ defmodule SnippitWeb.AddSnippet do
           </div>
           <div
             :if={@selected_track}
+            id={@selected_track.track}
             class="flex-1 justify-around overflow-hidden flex flex-col gap-8"
+            phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
           >
             <div class="flex items-center gap-16">
               <div class="flex-1">
@@ -316,7 +321,10 @@ defmodule SnippitWeb.AddSnippet do
                     phx-debounce="500"
                   />
                 </div>
-                <div class="h-6 text-sm text-red-500">
+                <div
+                  class="h-6 text-sm text-red-500"
+                  phx-mounted={JS.transition({"transition-opacity duration-100", "opacity-0", "opacity-100"})}
+                >
                   <%= get_first_error(@bounds_form) %>
                 </div>
               </.form>
@@ -346,15 +354,15 @@ defmodule SnippitWeb.AddSnippet do
               >
                 <div
                   id="track-marker"
-                  class="absolute left-[-4px] h-[8px] w-[8px] rounded-full translate-y-[-10px] cursor-pointer bg-black z-20"
+                  class="absolute left-[-4px] h-[8px] w-[8px] rounded-full translate-y-[-10px] cursor-pointer bg-zinc-800 z-20"
                   style={"transform:translateX(#{@track_ms * @track_width_px / @selected_track.duration_ms}px) translateY(-10px)"}
                 />
                 <div
-                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-black"
+                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-zinc-800"
                   style={"transform:translateX(#{@start_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
                 />
                 <div
-                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-black"
+                  class="bound-marker absolute left-[-2px] h-[24px] w-[4px] cursor-pointer bg-zinc-800"
                   style={"transform:translateX(#{@end_ms * @track_width_px / @selected_track.duration_ms}px) translateY(6px)"}
                 />
                 <div

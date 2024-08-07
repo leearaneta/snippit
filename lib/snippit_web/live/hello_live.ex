@@ -18,7 +18,7 @@ defmodule SnippitWeb.HelloLive do
     <.flash_group flash={@flash} />
     <.modal id="privacy_policy">
       <div class="h-[64vh] flex flex-col gap-8 overflow-scroll">
-        <div class="text-2xl"> Privacy Policy </div>
+        <div class="text-2xl font-bold"> Privacy Policy </div>
         <div class="flex flex-col gap-8">
           <span> A couple of things to know before we get started... </span>
           <ul class="flex flex-col gap-4 ml-8 list-disc">
@@ -96,7 +96,7 @@ defmodule SnippitWeb.HelloLive do
       </svg>
     </div>
     <div class="h-full px-4 py-10 sm:px-6 sm:py-28 lg:px-8 xl:px-28 xl:py-32 flex flex-col justify-between">
-      <div class="flex flex-col gap-4 w-[36rem]">
+      <div class="flex flex-col gap-4 mx-auto max-w-xl lg:mx-0">
         <p class="text-base text-zinc-600">
           hey 👋 we're working on getting spotify's permission to deploy this app.
         </p>

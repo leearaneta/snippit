@@ -73,6 +73,7 @@ defmodule SnippitWeb.AddToCollection do
         <div
           :if={!@creating_collection?}
           class="flex flex-col gap-1 overflow-hidden"
+          phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
         >
           <.form>
             <.input
@@ -83,7 +84,11 @@ defmodule SnippitWeb.AddToCollection do
             />
           </.form>
           <div class="flex flex-col gap-2 overflow-hidden">
-            <div :if={@selected_collection} class="flex flex-col">
+            <div
+              :if={@selected_collection}
+              class="flex flex-col"
+              phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
+            >
               <.collection_display collection={@selected_collection} />
             </div>
             <.search

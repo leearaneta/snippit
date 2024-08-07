@@ -92,13 +92,18 @@ hooks.root = {
       this.player = player
       window.player = player
 
-      this.player.on('authentication_error', ({ message }) => {
+      player.on('authentication_error', ({ message }) => {
         this.pushEvent('failed_to_authenticate', {})
       });
 
       player.on('playback_error', ({ message }) => {
         console.error('Failed to perform playback', message);
       });
+
+      player.on('account_error', ({ message }) => {
+        console.log(message)
+        this.pushEvent('spotify_free_detected', {})
+      })
     }
 
     this.handleEvent('initialize_audio', ({ start_ms, end_ms }) => {

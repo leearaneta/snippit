@@ -222,7 +222,7 @@ defmodule SnippitWeb.CollectionsLive do
         class="flex-none w-96 pr-4 flex flex-col gap-6 border-r-2"
       >
         <div class="flex justify-between items-center">
-          <div class="text-2xl"> Collections </div>
+          <div class="text-2xl font-bold"> Collections </div>
           <button
             class={[@adding_collection? || @collection_to_edit && "opacity-20 cursor-not-allowed"]}
             phx-click={"add_collection_clicked"}
@@ -323,17 +323,19 @@ defmodule SnippitWeb.CollectionsLive do
                 </div>
                 <div class="flex gap-8">
                   <.button
-                    class="w-24 bg-red-600"
+                    class="w-24"
+                    kind="warning"
                     phx-click={"delete_collection"}
                     phx-target={@myself}
                   >
-                    delete
+                    Delete
                   </.button>
                   <.button
                     class="w-24"
+                    kind="secondary"
                     phx-click={hide_modal("delete_collection")}
                   >
-                    cancel
+                    Cancel
                   </.button>
                 </div>
               </div>
@@ -349,7 +351,7 @@ defmodule SnippitWeb.CollectionsLive do
             :if={@collection_to_share}
             class="h-[64vh] flex flex-col gap-8"
           >
-            <div class="text-2xl"> Share Collection </div>
+            <div class="text-2xl font-bold"> Share Collection </div>
             <div class="h-full flex justify-between gap-16 overflow-hidden">
               <div class="flex-1 flex flex-col gap-8">
                 <div class="flex-1 flex flex-col gap-1 overflow-hidden">
@@ -399,13 +401,14 @@ defmodule SnippitWeb.CollectionsLive do
                     phx-click={"collection_shared"}
                     phx-target={@myself}
                   >
-                    share
+                    Share
                   </.button>
                   <.button
                     class="w-24"
+                    kind="secondary"
                     phx-click={hide_modal("share_collection")}
                   >
-                    cancel
+                    Cancel
                   </.button>
                 </div>
               </div>

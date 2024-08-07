@@ -23,7 +23,7 @@ defmodule Snippit.CollectionSnippets.CollectionSnippet do
     |> validate_required([:collection_id, :snippet_id, :added_by_id])
     |> unique_constraint([:collection_id, :snippet_id],
       name: :collection_snippets_collection_id_snippet_id_index,
-      message: "snippet already belongs to that collection!"
+      message: "Snippet already belongs to that collection!"
     )
   end
 end

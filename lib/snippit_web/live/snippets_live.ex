@@ -153,7 +153,7 @@ defmodule SnippitWeb.SnippetsLive do
           :if={@snippet_to_delete}
           class="h-[36vh] flex flex-col gap-8"
         >
-          <div class="text-2xl"> Delete Snippet </div>
+          <div class="text-2xl font-bold"> Delete Snippet </div>
           <div class="flex justify-between">
             <div class="flex-1 flex flex-col gap-8">
               <div class="flex flex-col gap-1">
@@ -162,7 +162,8 @@ defmodule SnippitWeb.SnippetsLive do
               </div>
               <div class="flex gap-8">
                 <.button
-                  class="w-24 bg-red-600"
+                  class="w-24"
+                  kind="warning"
                   phx-click="snippet_deleted"
                   phx-target={@myself}
                 >
@@ -170,6 +171,7 @@ defmodule SnippitWeb.SnippetsLive do
                 </.button>
                 <.button
                   class="w-24"
+                  kind="secondary"
                   phx-click={hide_modal("delete_snippet")}
                 >
                   Cancel
@@ -210,6 +212,7 @@ defmodule SnippitWeb.SnippetsLive do
             "transition-opacity",
             !@device_id && "opacity-40 cursor-not-allowed"
           ]}
+          phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
         >
           <.snippet_display
             snippet={collection_snippet}

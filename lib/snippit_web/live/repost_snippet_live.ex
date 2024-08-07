@@ -74,10 +74,11 @@ defmodule SnippitWeb.RepostSnippet do
           class="h-[75vh] flex flex-col gap-8"
         >
           <div class="flex justify-between items-center">
-            <div class="text-2xl"> Add Snippet To Collection </div>
+            <div class="text-2xl font-bold"> Add Snippet To Collection </div>
             <div
               :if={@error}
               class="text-red-400 text-sm"
+              phx-mounted={JS.transition({"transition-opacity duration-100", "opacity-0", "opacity-100"})}
             >
               <%= @error %>
             </div>
@@ -119,6 +120,7 @@ defmodule SnippitWeb.RepostSnippet do
                 </.button>
                 <.button
                   class="w-24"
+                  kind="secondary"
                   phx-click={hide_modal("repost_snippet")}
                 >
                   Cancel
