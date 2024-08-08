@@ -53,11 +53,11 @@ hooks.root = {
       }
     }
 
-    let script = document.createElement("script");
+    const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
     document.body.appendChild(script);
-  
+
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = this.el.dataset.token;
       const player = new Spotify.Player({
@@ -80,7 +80,6 @@ hooks.root = {
         const player_url = track_window.current_track.uri
         checkForOutOfBoundsTrack(position)
         updatePlayId({ paused, position })
-        console.log(paused, position, loading, track_window)
         this.pushEvent('player_state_changed', { paused, position, loading, player_url })
       }
 
@@ -191,6 +190,10 @@ hooks.root = {
   },
   destroyed() {
     this.player.disconnect()
+  },
+  reconnected() {
+    this.player.disconnect()
+    this.player.connect()
   }
 }
 

@@ -83,7 +83,10 @@ defmodule SnippitWeb.HomeLive do
   end
 
   def handle_event("player_ready", device_id, socket) do
-    {:noreply, assign(socket, :device_id, device_id)}
+    socket = socket
+    |> assign(:device_connected?, false)
+    |> assign(:device_id, device_id)
+    {:noreply, socket}
   end
 
 
