@@ -14,6 +14,7 @@ defmodule SnippitWeb.SnippetsLive do
     |> assign(:now_playing_snippet, nil)
     |> assign(:snippet_to_delete, nil)
     |> assign(:snippet_to_repost, nil)
+    |> assign(:show_snippet_info?, false)
     {:ok, socket}
   end
 
@@ -21,6 +22,8 @@ defmodule SnippitWeb.SnippetsLive do
     %{
       player_url: player_url,
       user_token: user_token,
+      now_playing_snippet: now_playing_snippet,
+      show_snippet_info?: show_snippet_info?,
       device_id: device_id,
       device_connected?: device_connected?,
       playing?: playing?
@@ -45,11 +48,14 @@ defmodule SnippitWeb.SnippetsLive do
     end
 
     initialize_audio_payload = snippet.snippet
-      |> Map.take([:spotify_url, :start_ms, :end_ms])
+    |> Map.take([:spotify_url, :start_ms, :end_ms])
+
+    show_snippet_info? = !(now_playing_snippet.id == snippet.id && playing? && !show_snippet_info?)
 
     socket
-      |> assign(:now_playing_snippet, snippet)
-      |> push_event("initialize_audio", initialize_audio_payload)
+    |> assign(:now_playing_snippet, snippet)
+    |> assign(:show_snippet_info?, show_snippet_info?)
+    |> push_event("initialize_audio", initialize_audio_payload)
   end
 
   def handle_event("snippet_clicked", %{"id" => id}, socket) do
@@ -111,6 +117,10 @@ defmodule SnippitWeb.SnippetsLive do
     |> assign(:now_playing_snippet, nil)
     |> push_event("track_clicked", %{"url" => url})
     {:noreply, socket}
+  end
+
+  def handle_event("close_snippet_info_clicked", _, socket) do
+    {:noreply, assign(socket, :show_snippet_info?, false)}
   end
 
   defp get_human_readable_time(ms) do
@@ -185,6 +195,7 @@ defmodule SnippitWeb.SnippetsLive do
             >
               <.snippet_display
                 snippet={@snippet_to_delete}
+                device_id={@device_id}
                 playing?={@now_playing_snippet
                   && @playing?
                   && @snippet_to_delete.id == @now_playing_snippet.id
@@ -208,11 +219,8 @@ defmodule SnippitWeb.SnippetsLive do
           phx-value-id={collection_snippet.id}
           phx-click="snippet_clicked"
           phx-target={@myself}
-          class={[
-            "transition-opacity",
-            !@device_id && "opacity-40 cursor-not-allowed"
-          ]}
-          phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
+          id={"#{collection_snippet.id}"}
+          phx-mounted={JS.transition({"duration-200", "opacity-0", "opacity-100"})}
         >
           <.snippet_display
             snippet={collection_snippet}
@@ -224,6 +232,7 @@ defmodule SnippitWeb.SnippetsLive do
               && @loading?
               && collection_snippet.id == @now_playing_snippet.id
             }
+            device_id={@device_id}
           >
             <div>
               <button
@@ -248,11 +257,18 @@ defmodule SnippitWeb.SnippetsLive do
       </ul>
       <div
         id={"snippet-info-#{@now_playing_snippet.id}"}
-        :if={@now_playing_snippet && @now_playing_snippet.collection_id == @selected_collection.id}
-        phx-mounted={JS.show(transition: {"ease-out-duration-100", "translate-y-16 opacity-0", "translate-y-0 opacity-100"})}
+        :if={@show_snippet_info? && @now_playing_snippet && @now_playing_snippet.collection_id == @selected_collection.id}
+        phx-mounted={JS.show(transition: {"duration-200", "translate-y-16 opacity-0", "translate-y-0 opacity-100"})}
         class="hidden fixed bottom-12 right-12 transition-transform transition-opacity"
       >
-        <div class="flex w-[32rem] flex-col gap-4 shadow-2xl rounded-2xl p-8 bg-white">
+        <div class="flex w-[32rem] flex-col gap-4 shadow-2xl rounded-2xl px-8 pb-8 pt-10 bg-white relative">
+          <div
+            class="absolute right-[15px] top-[15px] cursor-pointer"
+            phx-click={"close_snippet_info_clicked"}
+            phx-target={@myself}
+          >
+            <.icon name="hero-x-mark-solid" class="w-4" />
+          </div>
           <div class="flex gap-8 justify-between">
             <div class="flex-1">
               <.track_display
@@ -263,13 +279,16 @@ defmodule SnippitWeb.SnippetsLive do
                 spotify_url={@now_playing_snippet.snippet.spotify_url}
               />
             </div>
-            <div class="flex flex-col items-end">
+            <div class="flex flex-col items-end overflow-hidden">
               <div>
                 <%= get_human_readable_time(@now_playing_snippet.snippet.start_ms) %>
                 -
                 <%= get_human_readable_time(@now_playing_snippet.snippet.end_ms) %>
               </div>
-              <div class="italic text-zinc-600 text-sm"> added by <%= @now_playing_snippet.added_by.username %> </div>
+              <div class="italic text-zinc-600 text-sm overflow-hidden whitespace-nowrap text-ellipsis self-start w-full">
+                added by
+                <%= @now_playing_snippet.added_by.username %>
+              </div>
             </div>
           </div>
           <div :if={@now_playing_snippet.description} class="flex-1">

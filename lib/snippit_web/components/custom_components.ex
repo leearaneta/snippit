@@ -37,12 +37,20 @@ defmodule SnippitWeb.CustomComponents do
 
   attr :playing?, :boolean
   attr :loading?, :boolean
+  attr :device_id, :string
   attr :snippet, Snippet
   slot :inner_block
   def snippet_display(assigns) do
     ~H"""
       <div class="snippet flex flex-col cursor-pointer w-52 h-60 border-2 rounded-2xl px-2 pt-2">
-        <img alt={"#{@snippet.snippet.album} album artwork"} src={@snippet.snippet.image_url} />
+        <img
+          class={[
+            "transition-opacity opacity-100",
+            !@device_id && "opacity-40 cursor-not-allowed"
+          ]}
+          alt={"#{@snippet.snippet.album} album artwork"}
+          src={@snippet.snippet.image_url}
+        />
         <div class="flex justify-between items-center h-full">
           <div class="flex items-center gap-1">
             <div
@@ -119,7 +127,7 @@ defmodule SnippitWeb.CustomComponents do
             }
             id={"#{item.id}:#{index}"}
             phx-target={@el}
-            phx-mounted={JS.transition({"transition-opacity duration-150", "opacity-0", "opacity-100"})}
+            phx-mounted={JS.transition({"transition-opacity duration-200", "opacity-0", "opacity-100"})}
           >
             <%= render_slot(@inner_block, %{"item" => item, "index" => index}) %>
           </li>
