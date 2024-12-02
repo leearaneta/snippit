@@ -6,10 +6,8 @@ defmodule SnippitWeb.HomeLive do
   alias SnippitWeb.CustomComponents
   alias SnippitWeb.CollectionsLive
 
-
   alias Snippit.CollectionSnippets.CollectionSnippet
   alias Snippit.Repo
-
 
   import CustomComponents, warn: false
   import Ecto.Query, warn: false
